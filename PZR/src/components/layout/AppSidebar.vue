@@ -73,48 +73,35 @@
     </nav>
 
     <div class="sidebar-bottom">
-      <div class="role-toggle">
-        <button
-          class="role-btn"
-          :class="{ active: isAdmin }"
-          @click="handleSwitchRole('admin')"
-        >
-          Admin
-        </button>
-        <button
-          class="role-btn"
-          :class="{ active: !isAdmin }"
-          @click="handleSwitchRole('employee')"
-        >
-          Employee
-        </button>
-      </div>
-
+      <!-- user card -->
       <div class="user-card">
-        <div class="user-ava">{{ user.initials }}</div>
-        <div>
-          <div class="user-name">{{ user.name }}</div>
-          <div class="user-role">{{ user.roleLabel }}</div>
+        <div class="user-ava">{{ user?.initials ?? '?' }}</div>
+        <div class="user-info">
+          <div class="user-name">{{ user?.name ?? '—' }}</div>
+          <div class="user-role">{{ user?.roleLabel ?? '' }}</div>
         </div>
+      <button class="logout-btn" title="Sign out" @click="handleSignOut">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <path d="M6 2H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>
+            <path d="M11 11l3-3-3-3"/>
+            <line x1="14" y1="8" x2="6" y2="8"/>
+          </svg>
+        </button>
       </div>
     </div>
   </aside>
 </template>
 
 <script setup>
-import { useAuth } from '../../composables/useAuth.js'
 import { useRouter } from 'vue-router'
+import { useAuth } from '../../composables/useAuth.js'
 
-const { user, isAdmin, switchRole } = useAuth()
+const { user, isAdmin, signOut } = useAuth()
 const router = useRouter()
 
-function handleSwitchRole(role) {
-  switchRole(role)
-  if (role === 'admin') {
-    router.push('/dashboard')
-  } else {
-    router.push('/my')
-  }
+async function handleSignOut() {
+  await signOut()
+  router.replace('/login')
 }
 </script>
 
@@ -132,7 +119,6 @@ function handleSwitchRole(role) {
   padding: 0;
   overflow: hidden;
 }
-
 
 .nav {
   flex: 1;
@@ -153,9 +139,7 @@ function handleSwitchRole(role) {
   margin-top: 4px;
 }
 
-.nav-label:first-child {
-  margin-top: 0;
-}
+.nav-label:first-child { margin-top: 0; }
 
 .nav-item {
   display: flex;
@@ -171,15 +155,8 @@ function handleSwitchRole(role) {
   text-decoration: none;
 }
 
-.nav-item:hover {
-  background: var(--bg-hover);
-  color: var(--text);
-}
-
-.nav-item.active {
-  background: var(--bg-hover);
-  color: var(--text);
-}
+.nav-item:hover { background: var(--bg-hover); color: var(--text); }
+.nav-item.active { background: var(--bg-hover); color: var(--text); }
 
 .nav-icon {
   display: flex;
@@ -189,44 +166,10 @@ function handleSwitchRole(role) {
   color: inherit;
 }
 
+/* ── bottom ── */
 .sidebar-bottom {
   padding: 12px 8px 16px;
   border-top: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.role-toggle {
-  display: flex;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 2px;
-  gap: 2px;
-}
-
-.role-btn {
-  flex: 1;
-  padding: 5px 0;
-  border: none;
-  background: transparent;
-  color: var(--text-3);
-  font-family: 'IBM Plex Sans', sans-serif;
-  font-size: 11px;
-  font-weight: 500;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.12s, color 0.12s;
-}
-
-.role-btn:hover {
-  color: var(--text-2);
-}
-
-.role-btn.active {
-  background: var(--bg-raised);
-  color: var(--text);
 }
 
 .user-card {
@@ -240,26 +183,27 @@ function handleSwitchRole(role) {
 }
 
 .user-ava {
-  width: 30px;
-  height: 30px;
+  width: 30px; height: 30px;
   border-radius: 6px;
   background: var(--bg-hover);
   border: 1px solid var(--border-light);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 10px;
-  font-weight: 500;
+  font-size: 10px; font-weight: 500;
   color: var(--text-2);
   flex-shrink: 0;
 }
+
+.user-info { flex: 1; min-width: 0; }
 
 .user-name {
   font-size: 12px;
   font-weight: 500;
   color: var(--text);
   line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .user-role {
@@ -267,4 +211,20 @@ function handleSwitchRole(role) {
   color: var(--text-3);
   line-height: 1.3;
 }
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px; height: 26px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.logout-btn:hover  { color: var(--red);  border-color: rgba(248,113,113,0.3); background: rgba(248,113,113,0.06); }
 </style>

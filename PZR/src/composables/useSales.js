@@ -1,4 +1,4 @@
-import { reactive, computed } from 'vue'
+import { reactive, computed, isRef } from 'vue'
 
 // date: "DD.MM.YYYY HH:MM" — productIdx: 0-based index into useProducts allProducts
 const _sales = reactive([
@@ -22,6 +22,13 @@ const _sales = reactive([
   { id: 18, date: '15.03.2026 11:45', staffId: 3, productIdx: 1, qty: 1,  total:  389, edited: false },
 ])
 
+// Mock revenue for previous month (Feb 2026) — global totals
+const _prevMonthRaw = [
+  0, 389, 0, 499, 0, 178, 0, 429, 0, 899,
+  0, 249, 165, 0, 389, 429, 0, 499, 0, 899,
+  178, 0, 429, 0, 165, 389, 0, 249,
+]
+
 const _yearlyRevenue = [
   { label: 'Apr', revenue:  6200 },
   { label: 'May', revenue:  7100 },
@@ -38,8 +45,9 @@ const _yearlyRevenue = [
 ]
 
 export function useSales(staffId = null) {
+  const _id = isRef(staffId) ? staffId : { value: staffId }
   const sales = computed(() =>
-    staffId ? _sales.filter(s => s.staffId === staffId) : [..._sales]
+    _id.value ? _sales.filter(s => s.staffId === _id.value) : [..._sales]
   )
 
   const totalRevenue = computed(() =>
@@ -88,11 +96,25 @@ export function useSales(staffId = null) {
 
   // When staffId is set, yearly values are scaled by that staff's share of recorded sales
   const revenueByYear = computed(() => {
-    if (!staffId) return _yearlyRevenue
+    if (!_id.value) return _yearlyRevenue
     const total = _sales.reduce((s, x) => s + x.total, 0)
-    const mine  = _sales.filter(x => x.staffId === staffId).reduce((s, x) => s + x.total, 0)
+    const mine  = _sales.filter(x => x.staffId === _id.value).reduce((s, x) => s + x.total, 0)
     const ratio = total > 0 ? mine / total : 0
     return _yearlyRevenue.map(m => ({ ...m, revenue: Math.round(m.revenue * ratio) }))
+  })
+
+  const prevMonthByDay = computed(() => {
+    let ratio = 1
+    if (_id.value) {
+      const total = _sales.reduce((s, x) => s + x.total, 0)
+      const mine  = _sales.filter(x => x.staffId === _id.value).reduce((s, x) => s + x.total, 0)
+      ratio = total > 0 ? mine / total : 0
+    }
+    return _prevMonthRaw.map((revenue, i) => ({
+      day: i + 1,
+      label: String(i + 1),
+      revenue: Math.round(revenue * ratio),
+    }))
   })
 
   function recentSales(limit = 5) {
@@ -114,5 +136,5 @@ export function useSales(staffId = null) {
     _sales.push({ id: _sales.length + 1, edited: false, ...data })
   }
 
-  return { sales, totalRevenue, salesCount, todayRevenue, revenueByMonth, revenueByWeek, revenueByYear, recentSales, editSale, deleteSale, addSale }
+  return { sales, totalRevenue, salesCount, todayRevenue, revenueByMonth, revenueByWeek, revenueByYear, prevMonthByDay, recentSales, editSale, deleteSale, addSale }
 }

@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShopBoard</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #101010;
+    --bg-raised: #171717;
+    --bg-hover: #1E1E1E;
+    --border: #252525;
+    --border-light: #2A2A2A;
+    --text: #E8E8E8;
+    --text-2: #888;
+    --text-3: #555;
+    --accent: #E8E8E8;
+    --green: #4ADE80;
+    --red: #F87171;
+    --blue: #60A5FA;
+    --amber: #FBBF24;
+    --sidebar-w: 220px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: var(--sidebar-w);
+    background: var(--bg);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+  }
+
+  .logo {
+    padding: 24px 20px 32px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 500;
+    font-size: 15px;
+    letter-spacing: -0.3px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-dot {
+    width: 8px; height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+  }
+
+  .nav { flex: 1; padding: 0 12px; }
+
+  .nav-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-3);
+    padding: 20px 8px 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-2);
+    transition: all 0.15s;
+    margin-bottom: 1px;
+  }
+
+  .nav-item:hover { color: var(--text); background: var(--bg-hover); }
+  .nav-item.active { color: var(--text); background: var(--bg-raised); }
+
+  .nav-icon { width: 16px; height: 16px; opacity: 0.5; flex-shrink: 0; }
+  .nav-item.active .nav-icon { opacity: 0.9; }
+
+  .nav-count {
+    margin-left: auto;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-3);
+  }
+
+  /* subnav */
+  .subnav {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease;
+    padding-left: 26px;
+  }
+  .subnav.open { max-height: 240px; }
+
+  .subnav-item {
+    padding: 6px 8px;
+    font-size: 12px;
+    color: var(--text-3);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: color 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .subnav-item:hover { color: var(--text-2); }
+
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* sidebar bottom */
+  .sidebar-bottom {
+    padding: 16px 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .role-toggle {
+    display: flex;
+    background: var(--bg-raised);
+    border-radius: 6px;
+    padding: 2px;
+    margin-bottom: 12px;
+  }
+
+  .role-btn {
+    flex: 1;
+    padding: 6px 0;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-3);
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+
+  .role-btn.active { background: var(--bg-hover); color: var(--text); }
+
+  .user-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px;
+  }
+
+  .user-ava {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border-light);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 600;
+    color: var(--text-2);
+    background: var(--bg-raised);
+  }
+
+  .user-name { font-size: 12px; font-weight: 500; }
+  .user-role { font-size: 10px; color: var(--text-3); }
+
+  /* ── MAIN ── */
+  .main {
+    margin-left: var(--sidebar-w);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* header */
+  .header {
+    padding: 0 32px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .page-title {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+  }
+
+  .header-right { display: flex; align-items: center; gap: 8px; }
+
+  .period-group {
+    display: flex;
+    gap: 1px;
+    background: var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .period-btn {
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-3);
+    background: var(--bg-raised);
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+
+  .period-btn:hover { color: var(--text-2); }
+  .period-btn.active { color: var(--text); background: var(--bg-hover); }
+
+  .icon-btn {
+    width: 32px; height: 32px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-3);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .icon-btn:hover { color: var(--text-2); border-color: var(--border-light); }
+
+  /* ── CONTENT ── */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px 32px;
+  }
+
+  .content::-webkit-scrollbar { width: 4px; }
+  .content::-webkit-scrollbar-track { background: transparent; }
+  .content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* ── METRICS ── */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .metric {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    transition: border-color 0.15s;
+  }
+
+  .metric:hover { border-color: var(--border-light); }
+
+  .metric-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+  }
+
+  .metric-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 24px;
+    font-weight: 500;
+    letter-spacing: -1px;
+    margin-bottom: 6px;
+  }
+
+  .metric-delta {
+    font-size: 11px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .metric-delta.up { color: var(--green); }
+  .metric-delta.down { color: var(--red); }
+
+  /* ── GRID ── */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .grid-2.even { grid-template-columns: 1fr 1fr; }
+
+  .panel {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    transition: border-color 0.15s;
+  }
+
+  .panel:hover { border-color: var(--border-light); }
+
+  .panel-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-2);
+    margin-bottom: 4px;
+  }
+
+  .panel-sub {
+    font-size: 10px;
+    color: var(--text-3);
+    margin-bottom: 20px;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .panel-header-left {}
+
+  .chart-toggle {
+    display: flex;
+    gap: 1px;
+    background: var(--border);
+    border-radius: 5px;
+    overflow: hidden;
+  }
+
+  .chart-toggle-btn {
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-3);
+    background: var(--bg);
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+
+  .chart-toggle-btn:hover { color: var(--text-2); }
+  .chart-toggle-btn.active { color: var(--text); background: var(--bg-hover); }
+
+  .chart-wrap {
+    height: 220px;
+    position: relative;
+  }
+
+  .chart-wrap canvas { width: 100% !important; height: 100% !important; }
+
+  /* ── TABLE ── */
+  .tbl-wrap {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+
+  .tbl-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .tbl-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-2);
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  th {
+    text-align: left;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-3);
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 10px 20px;
+    font-size: 13px;
+    color: var(--text-2);
+    border-bottom: 1px solid rgba(37,37,37,0.6);
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg-raised); }
+
+  .mono {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+  }
+
+  .cell-name { color: var(--text); font-weight: 500; }
+
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .tag-on { background: rgba(74,222,128,0.1); color: var(--green); }
+  .tag-off { background: rgba(85,85,85,0.2); color: var(--text-3); }
+  .tag-gold { background: rgba(251,191,36,0.12); color: var(--amber); }
+  .tag-silver { background: rgba(148,163,184,0.12); color: #94A3B8; }
+  .tag-bronze { background: rgba(180,130,90,0.12); color: #C4956A; }
+  .tag-none { background: rgba(85,85,85,0.15); color: var(--text-3); }
+
+  .discount-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2px;
+  }
+
+  .discount-track {
+    flex: 1;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    max-width: 80px;
+  }
+
+  .discount-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.3s;
+  }
+
+  .link {
+    color: var(--text-2);
+    cursor: pointer;
+    font-size: 12px;
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+    transition: all 0.15s;
+  }
+
+  .link:hover { color: var(--text); border-color: var(--text-2); }
+
+  /* ── LIVE FEED ── */
+  .feed {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 28px;
+    transition: border-color 0.15s;
+  }
+
+  .feed:hover { border-color: var(--border-light); }
+
+  .feed-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .feed-title { font-size: 12px; font-weight: 600; color: var(--text-2); }
+
+  .feed-live {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--green);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .live-dot {
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .feed-item {
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: background 0.15s;
+    border-bottom: 1px solid rgba(37,37,37,0.5);
+  }
+
+  .feed-item:last-child { border-bottom: none; }
+  .feed-item:hover { background: var(--bg-hover); }
+
+  .feed-time {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-3);
+    min-width: 110px;
+    flex-shrink: 0;
+  }
+
+  .feed-product { font-size: 13px; font-weight: 500; color: var(--text); flex: 1; }
+  .feed-seller { font-size: 12px; color: var(--text-3); min-width: 80px; }
+
+  .feed-amount {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--green);
+    min-width: 90px;
+    text-align: right;
+  }
+
+  /* ── EMPLOYEE DETAIL ── */
+  .emp-bar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+    padding: 16px 20px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .emp-ava {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border-light);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 600; color: var(--text-2);
+  }
+
+  .emp-name { font-size: 15px; font-weight: 600; }
+  .emp-meta { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+
+  .back-link {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--text-3);
+    cursor: pointer;
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 6px;
+    background: transparent;
+    font-family: inherit;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+
+  .back-link:hover { color: var(--text-2); border-color: var(--border-light); }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px;
+    width: 420px;
+    max-width: 90vw;
+    animation: fadeIn 0.15s ease;
+  }
+
+  .modal-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+
+  .modal-field {
+    margin-bottom: 14px;
+  }
+
+  .modal-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .modal-input, .modal-select {
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .modal-input:focus, .modal-select:focus { border-color: var(--text-3); }
+
+  .modal-select option { background: var(--bg-raised); color: var(--text); }
+
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 20px;
+  }
+
+  .btn {
+    padding: 7px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    transition: all 0.15s;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-2);
+  }
+
+  .btn-ghost:hover { color: var(--text); border-color: var(--border-light); }
+
+  .btn-primary {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+  }
+
+  .btn-primary:hover { opacity: 0.85; }
+
+  .btn-danger {
+    background: transparent;
+    color: var(--red);
+    border-color: rgba(248,113,113,0.3);
+  }
+
+  .btn-danger:hover { background: var(--red); color: white; border-color: var(--red); }
+
+  /* action buttons in table */
+  .row-actions {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+  }
+
+  .row-btn {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-3);
+    transition: all 0.15s;
+  }
+
+  .row-btn:hover { color: var(--text-2); border-color: var(--border-light); }
+  .row-btn-del:hover { color: var(--red); border-color: rgba(248,113,113,0.3); }
+
+  .edited-tag {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--amber);
+    background: var(--orange-soft);
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  /* ── PAGES ── */
+  .page { display: none; }
+  .page.active { display: block; animation: fadeIn 0.2s ease; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 1100px) {
+    .metrics { grid-template-columns: repeat(2, 1fr); }
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="logo">
+    <span class="logo-dot"></span>
+    shopboard
+  </div>
+
+  <div class="nav" id="sidebarNav"></div>
+
+  <div class="sidebar-bottom">
+    <div class="role-toggle">
+      <button class="role-btn active" onclick="switchRole('admin')">Админ</button>
+      <button class="role-btn" onclick="switchRole('employee')">Сотрудник</button>
+    </div>
+    <div class="user-card">
+      <div class="user-ava" id="uAva">АИ</div>
+      <div>
+        <div class="user-name" id="uName">А. Иванов</div>
+        <div class="user-role" id="uRole">Администратор</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="main">
+  <header class="header">
+    <div class="page-title" id="pageTitle">Обзор</div>
+    <div class="header-right">
+      <button class="icon-btn" title="Экспорт">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10v2h8v-2M7 2v7M4 5l3-3 3 3"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- OVERVIEW -->
+    <div class="page active" id="p-overview">
+      <div class="metrics" id="overviewMetrics"></div>
+      <div class="panel" style="margin-bottom:28px">
+        <div class="panel-header">
+          <div class="panel-header-left">
+            <div class="panel-title">Выручка</div>
+            <div class="panel-sub">Динамика продаж</div>
+          </div>
+          <div class="chart-toggle" id="overviewToggle">
+            <button class="chart-toggle-btn" onclick="switchChart('overview','week',this)">Неделя</button>
+            <button class="chart-toggle-btn active" onclick="switchChart('overview','month',this)">Месяц</button>
+            <button class="chart-toggle-btn" onclick="switchChart('overview','year',this)">Год</button>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="cOverview"></canvas></div>
+      </div>
+      <div class="feed" id="overviewFeed"></div>
+    </div>
+
+    <!-- EMPLOYEES -->
+    <div class="page" id="p-employees">
+      <div class="metrics" id="empMetrics"></div>
+      <div class="tbl-wrap">
+        <div class="tbl-header"><div class="tbl-title">Все сотрудники</div></div>
+        <table>
+          <thead><tr><th>Имя</th><th>Продаж</th><th>Выручка</th><th>Сегодня</th><th>Статус</th><th></th></tr></thead>
+          <tbody id="empTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- EMPLOYEE DETAIL -->
+    <div class="page" id="p-emp-detail">
+      <div class="emp-bar" id="empBar"></div>
+      <div class="metrics" id="empDetailMetrics"></div>
+      <div class="panel" style="margin-bottom:28px">
+        <div class="panel-header">
+          <div class="panel-header-left">
+            <div class="panel-title">Выручка сотрудника</div>
+            <div class="panel-sub">Персональная динамика</div>
+          </div>
+          <div class="chart-toggle" id="empToggle">
+            <button class="chart-toggle-btn" onclick="switchChart('emp','week',this)">Неделя</button>
+            <button class="chart-toggle-btn active" onclick="switchChart('emp','month',this)">Месяц</button>
+            <button class="chart-toggle-btn" onclick="switchChart('emp','year',this)">Год</button>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="cEmp"></canvas></div>
+      </div>
+      <div class="feed" id="empFeed"></div>
+    </div>
+
+    <!-- MY DASHBOARD -->
+    <div class="page" id="p-my">
+      <div class="metrics" id="myMetrics"></div>
+      <div class="panel" style="margin-bottom:28px">
+        <div class="panel-header">
+          <div class="panel-header-left">
+            <div class="panel-title">Моя выручка</div>
+            <div class="panel-sub">Персональная статистика</div>
+          </div>
+          <div class="chart-toggle" id="myToggle">
+            <button class="chart-toggle-btn" onclick="switchChart('my','week',this)">Неделя</button>
+            <button class="chart-toggle-btn active" onclick="switchChart('my','month',this)">Месяц</button>
+            <button class="chart-toggle-btn" onclick="switchChart('my','year',this)">Год</button>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="cMy"></canvas></div>
+      </div>
+      <div class="feed" id="myFeed"></div>
+    </div>
+
+    <!-- CUSTOMERS -->
+    <div class="page" id="p-customers">
+      <div class="metrics" id="custMetrics"></div>
+      <div class="tbl-wrap">
+        <div class="tbl-header"><div class="tbl-title">Покупатели</div></div>
+        <table>
+          <thead><tr><th>ID</th><th>Имя</th><th>Покупок</th><th>Потрачено</th><th>Уровень</th><th>Скидка</th><th></th></tr></thead>
+          <tbody id="custTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CUSTOMER DETAIL -->
+    <div class="page" id="p-cust-detail">
+      <div class="emp-bar" id="custBar"></div>
+      <div class="metrics" id="custDetailMetrics"></div>
+      <div class="panel" style="margin-bottom:28px">
+        <div class="panel-header">
+          <div class="panel-header-left">
+            <div class="panel-title">Расходы покупателя</div>
+            <div class="panel-sub">Динамика покупок</div>
+          </div>
+          <div class="chart-toggle" id="custToggle">
+            <button class="chart-toggle-btn" onclick="switchChart('cust','week',this)">Неделя</button>
+            <button class="chart-toggle-btn active" onclick="switchChart('cust','month',this)">Месяц</button>
+            <button class="chart-toggle-btn" onclick="switchChart('cust','year',this)">Год</button>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="cCust"></canvas></div>
+      </div>
+      <div class="tbl-wrap">
+        <div class="tbl-header"><div class="tbl-title">Последние покупки</div></div>
+        <table>
+          <thead><tr><th>Дата</th><th>Товар</th><th>Категория</th><th>Кол-во</th><th>Сумма</th></tr></thead>
+          <tbody id="custPurchases"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SALES -->
+    <div class="page" id="p-sales">
+      <div class="tbl-wrap">
+        <div class="tbl-header"><div class="tbl-title">История продаж</div></div>
+        <table>
+          <thead><tr><th>Дата</th><th>Сотрудник</th><th>Товар</th><th>Категория</th><th>Кол-во</th><th>Сумма</th><th id="salesActionsHeader"></th></tr></thead>
+          <tbody id="salesTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- EDIT SALE MODAL -->
+    <div class="modal-overlay" id="editModal">
+      <div class="modal">
+        <div class="modal-title" id="modalTitle">Редактировать продажу</div>
+        <div class="modal-field">
+          <label class="modal-label">Дата и время</label>
+          <input class="modal-input" type="text" id="editDate" placeholder="ДД.ММ.ГГГГ ЧЧ:ММ">
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Сотрудник</label>
+          <select class="modal-select" id="editStaff"></select>
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Товар</label>
+          <select class="modal-select" id="editProduct"></select>
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Количество</label>
+          <input class="modal-input" type="number" id="editQty" min="1" value="1">
+        </div>
+        <div id="editSummary" style="font-size:12px;color:var(--text-3);margin-top:4px"></div>
+        <div class="modal-actions">
+          <button class="btn btn-danger" id="editDeleteBtn" onclick="deleteSale()">Удалить</button>
+          <div style="flex:1"></div>
+          <button class="btn btn-ghost" onclick="closeModal()">Отмена</button>
+          <button class="btn btn-primary" onclick="saveSale()">Сохранить</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ═══ DATA ═══
+const staff = [
+  { id:1, name:'Мария Петрова', init:'МП', sales:342, rev:1847200, avg:5400, on:true },
+  { id:2, name:'Дмитрий Козлов', init:'ДК', sales:298, rev:1623500, avg:5448, on:true },
+  { id:3, name:'Елена Сидорова', init:'ЕС', sales:276, rev:1490800, avg:5402, on:false },
+  { id:4, name:'Алексей Морозов', init:'АМ', sales:251, rev:1356400, avg:5404, on:true },
+  { id:5, name:'Ольга Новикова', init:'ОН', sales:234, rev:1198600, avg:5122, on:false },
+  { id:6, name:'Игорь Волков', init:'ИВ', sales:189, rev:987400, avg:5224, on:true },
+];
+
+const cats = ['Электроника','Одежда','Продукты','Быт. техника','Спорт'];
+const catVals = [32,24,20,14,10];
+const catClrs = ['#60A5FA','#A78BFA','#4ADE80','#FBBF24','#F87171'];
+
+const mo = ['Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек','Янв','Фев','Мар'];
+const moRev = [620,710,680,820,780,910,870,950,1120,1040,980,1150];
+
+const wk = ['Н1','Н2','Н3','Н4','Н5','Н6','Н7','Н8','Н9','Н10','Н11','Н12'];
+const wkRev = [185,210,195,240,220,265,250,230,275,260,290,310];
+
+const yr = ['2021','2022','2023','2024','2025'];
+const yrRev = [6200,7800,8900,9500,10800];
+
+// chart data by period
+const chartPeriods = {
+  week:  { labels: wk, data: wkRev },
+  month: { labels: mo, data: moRev },
+  year:  { labels: yr, data: yrRev },
+};
+
+// current state per chart scope
+const chartState = {
+  overview: 'month',
+  emp: 'month',
+  my: 'month',
+  cust: 'month',
+};
+let currentEmpFactor = 1;
+let currentCustFactor = 0.25;
+
+const topNames = ['iPhone 15','Samsung TV','Nike Air','MacBook Pro','PS5'];
+const topVals = [156,134,128,112,98];
+
+const products = [
+  { sku:'EL-001', name:'iPhone 15', cat:'Электроника', price:42990, sold:156, on:true },
+  { sku:'EL-002', name:'Samsung TV 55"', cat:'Электроника', price:38500, sold:134, on:true },
+  { sku:'SP-001', name:'Nike Air Max', cat:'Спорт', price:8990, sold:128, on:true },
+  { sku:'EL-003', name:'MacBook Pro 14', cat:'Электроника', price:89990, sold:112, on:true },
+  { sku:'EL-004', name:'PlayStation 5', cat:'Электроника', price:49990, sold:98, on:true },
+  { sku:'OD-001', name:'Куртка Zara', cat:'Одежда', price:5490, sold:87, on:true },
+  { sku:'BT-001', name:'Кофемашина DeLonghi', cat:'Быт. техника', price:24990, sold:76, on:false },
+  { sku:'PR-001', name:'Набор специй', cat:'Продукты', price:890, sold:234, on:true },
+];
+
+const customers = [
+  { id:'C-0001', name:'Анна Кравченко', purchases:47, spent:389200, avg:8281, tier:'gold', discount:15, lastVisit:'19.03.2026' },
+  { id:'C-0002', name:'Виктор Шевченко', purchases:34, spent:278500, avg:8191, tier:'gold', discount:12, lastVisit:'20.03.2026' },
+  { id:'C-0003', name:'Ирина Бондаренко', purchases:28, spent:195600, avg:6986, tier:'silver', discount:8, lastVisit:'18.03.2026' },
+  { id:'C-0004', name:'Олег Ткаченко', purchases:22, spent:156800, avg:7127, tier:'silver', discount:7, lastVisit:'17.03.2026' },
+  { id:'C-0005', name:'Наталья Коваленко', purchases:19, spent:124300, avg:6542, tier:'silver', discount:5, lastVisit:'20.03.2026' },
+  { id:'C-0006', name:'Сергей Мельник', purchases:14, spent:87400, avg:6243, tier:'bronze', discount:3, lastVisit:'15.03.2026' },
+  { id:'C-0007', name:'Татьяна Лисенко', purchases:11, spent:62100, avg:5645, tier:'bronze', discount:3, lastVisit:'16.03.2026' },
+  { id:'C-0008', name:'Павел Руденко', purchases:8, spent:43200, avg:5400, tier:'none', discount:0, lastVisit:'14.03.2026' },
+  { id:'C-0009', name:'Юлия Полищук', purchases:5, spent:28900, avg:5780, tier:'none', discount:0, lastVisit:'12.03.2026' },
+  { id:'C-0010', name:'Андрей Савченко', purchases:3, spent:15600, avg:5200, tier:'none', discount:0, lastVisit:'10.03.2026' },
+];
+
+const tierNames = { gold:'Gold', silver:'Silver', bronze:'Bronze', none:'Новый' };
+const tierThresholds = { gold: 250000, silver: 100000, bronze: 50000 };
+
+// ═══ STATE ═══
+let role = 'admin', page = 'overview', charts = {};
+
+// ═══ NAV ═══
+const icons = {
+  chart: '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="8" width="3" height="6" rx="0.5"/><rect x="7" y="4" width="3" height="10" rx="0.5"/><rect x="12" y="2" width="3" height="12" rx="0.5"/></svg>',
+  users: '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="2.5"/><path d="M1 14v-1a4 4 0 0 1 4-4h2a4 4 0 0 1 4 4v1"/><circle cx="12" cy="5" r="2" opacity="0.5"/></svg>',
+  list:  '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="4" x2="13" y2="4"/><line x1="3" y1="8" x2="13" y2="8"/><line x1="3" y1="12" x2="10" y2="12"/></svg>',
+  box:   '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 5l6-3 6 3v6l-6 3-6-3V5z"/><path d="M2 5l6 3 6-3M8 8v6.5"/></svg>',
+  cust:  '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 15v-1a6 6 0 0 1 12 0v1"/></svg>',
+};
+
+function buildNav() {
+  const items = role === 'admin'
+    ? [
+        { s: 'Аналитика' },
+        { id:'overview', icon:'chart', label:'Обзор' },
+        { id:'employees', icon:'users', label:'Сотрудники', count: staff.length },
+        { id:'customers', icon:'cust', label:'Покупатели', count: customers.length },
+        { s: 'Данные' },
+        { id:'sales', icon:'list', label:'Продажи' },
+      ]
+    : [
+        { s: 'Моё' },
+        { id:'my', icon:'chart', label:'Дашборд' },
+        { s: 'Данные' },
+        { id:'sales', icon:'list', label:'Мои продажи' },
+      ];
+
+  let h = '';
+  items.forEach(it => {
+    if (it.s) { h += `<div class="nav-label">${it.s}</div>`; return; }
+    const a = page === it.id || (it.id === 'employees' && page === 'emp-detail') || (it.id === 'customers' && page === 'cust-detail') ? ' active' : '';
+    const c = it.count ? `<span class="nav-count">${it.count}</span>` : '';
+    h += `<div class="nav-item${a}" onclick="go('${it.id}')"><span class="nav-icon">${icons[it.icon]}</span>${it.label}${c}</div>`;
+
+    if (it.id === 'employees' && role === 'admin') {
+      const open = page === 'emp-detail' ? ' open' : '';
+      h += `<div class="subnav${open}">`;
+      staff.forEach(s => {
+        h += `<div class="subnav-item" onclick="showEmp(${s.id})"><span class="dot" style="background:${s.on ? 'var(--green)' : 'var(--text-3)'}"></span>${s.name.split(' ')[0]}</div>`;
+      });
+      h += `</div>`;
+    }
+  });
+  document.getElementById('sidebarNav').innerHTML = h;
+
+  document.querySelectorAll('.role-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.trim() === (role === 'admin' ? 'Админ' : 'Сотрудник'));
+  });
+
+  const u = role === 'admin' ? {a:'АИ',n:'А. Иванов',r:'Администратор'} : {a:'МП',n:'М. Петрова',r:'Сотрудник'};
+  document.getElementById('uAva').textContent = u.a;
+  document.getElementById('uName').textContent = u.n;
+  document.getElementById('uRole').textContent = u.r;
+}
+
+// ═══ ROUTING ═══
+const titles = {overview:'Обзор',employees:'Сотрудники','emp-detail':'Сотрудник',customers:'Покупатели','cust-detail':'Покупатель',my:'Мой дашборд',sales:'Продажи'};
+
+function go(p) {
+  page = p;
+  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('p-' + p);
+  if (el) el.classList.add('active');
+  document.getElementById('pageTitle').textContent = titles[p] || p;
+  buildNav();
+  render(p);
+}
+
+function switchRole(r) { role = r; go(r === 'admin' ? 'overview' : 'my'); }
+
+function switchChart(scope, period, btn) {
+  // update toggle buttons
+  btn.parentElement.querySelectorAll('.chart-toggle-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  chartState[scope] = period;
+
+  const p = chartPeriods[period];
+  const canvasMap = { overview:'cOverview', emp:'cEmp', my:'cMy', cust:'cCust' };
+  const colorMap = { overview:'#60A5FA', emp:'#60A5FA', my:'#4ADE80', cust:'#60A5FA' };
+
+  let data = p.data;
+  if (scope === 'emp') data = p.data.map(v => Math.round(v * currentEmpFactor * (0.85 + Math.random() * 0.3)));
+  if (scope === 'my') data = p.data.map(v => Math.round(v * 0.22 * (0.85 + Math.random() * 0.3)));
+  if (scope === 'cust') data = p.data.map(v => Math.round(v * currentCustFactor * (0.6 + Math.random() * 0.8)));
+
+  if (period === 'week') {
+    barC(canvasMap[scope], scope + 'Chart', p.labels, data, colorMap[scope]);
+  } else {
+    lineC(canvasMap[scope], scope + 'Chart', p.labels, data, colorMap[scope]);
+  }
+}
+
+// ═══ HELPERS ═══
+function fmt(n) { return n.toLocaleString('ru-RU') + ' ₴'; }
+
+function metricHTML(label, value, delta, up) {
+  return `<div class="metric">
+    <div class="metric-label">${label}</div>
+    <div class="metric-value">${value}</div>
+    <div class="metric-delta ${up ? 'up' : 'down'}">${up ? '↑' : '↓'} ${delta}</div>
+  </div>`;
+}
+
+// ═══ CHARTS ═══
+Chart.defaults.color = '#555';
+Chart.defaults.borderColor = '#252525';
+Chart.defaults.font.family = "'IBM Plex Sans', sans-serif";
+Chart.defaults.font.size = 11;
+
+function kill(name) { if (charts[name]) { charts[name].destroy(); delete charts[name]; } }
+
+function lineC(id, name, labels, data, color) {
+  kill(name);
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  const g = ctx.getContext('2d').createLinearGradient(0, 0, 0, 220);
+  g.addColorStop(0, color + '18'); g.addColorStop(1, color + '00');
+  charts[name] = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [{ data, borderColor: color, backgroundColor: g, fill: true, tension: 0.35, pointRadius: 0, pointHoverRadius: 4, borderWidth: 1.5 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { y: { grid: { color: '#1E1E1E' }, ticks: { font: { family: "'IBM Plex Mono'" } } }, x: { grid: { display: false } } } }
+  });
+}
+
+function barC(id, name, labels, data, color) {
+  kill(name);
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  charts[name] = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ data, backgroundColor: color + '66', hoverBackgroundColor: color + 'AA', borderRadius: 3, borderSkipped: false, maxBarThickness: 24 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { y: { grid: { color: '#1E1E1E' }, ticks: { font: { family: "'IBM Plex Mono'" } } }, x: { grid: { display: false } } } }
+  });
+}
+
+function doughC(id, name, labels, data, colors) {
+  kill(name);
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  charts[name] = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: colors.map(c => c + '99'), hoverBackgroundColor: colors, borderWidth: 0, hoverOffset: 4 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '70%',
+      plugins: { legend: { position: 'bottom', labels: { padding: 12, usePointStyle: true, pointStyleWidth: 6, font: { size: 11 } } } } }
+  });
+}
+
+function hbarC(id, name, labels, data, colors) {
+  kill(name);
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  charts[name] = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ data, backgroundColor: colors.map(c => c + '66'), hoverBackgroundColor: colors.map(c => c + 'AA'), borderRadius: 3, borderSkipped: false }] },
+    options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: { x: { grid: { color: '#1E1E1E' }, ticks: { font: { family: "'IBM Plex Mono'" } } }, y: { grid: { display: false } } } }
+  });
+}
+
+// ═══ RENDER ═══
+function render(p) {
+  switch(p) {
+    case 'overview': renderOverview(); break;
+    case 'employees': renderEmployees(); break;
+    case 'customers': renderCustomers(); break;
+    case 'my': renderMy(); break;
+    case 'sales': renderSales(); break;
+  }
+}
+
+// ═══ FEED HELPER ═══
+function generateFeed(containerId, count, filterStaffId) {
+  const feedData = [
+    '20.03.2026 14:32','20.03.2026 14:08','20.03.2026 13:45','20.03.2026 13:19',
+    '20.03.2026 13:02','20.03.2026 12:38','20.03.2026 12:14','20.03.2026 11:51',
+    '20.03.2026 11:27','20.03.2026 11:03','20.03.2026 10:42','20.03.2026 10:18',
+    '19.03.2026 17:34','19.03.2026 16:12','19.03.2026 15:05'
+  ];
+  let h = `<div class="feed-header"><div class="feed-title">Последние продажи</div><div class="feed-live"><span class="live-dot"></span>Live</div></div>`;
+  for (let i = 0; i < count; i++) {
+    const s = filterStaffId ? staff.find(x => x.id === filterStaffId) : staff[Math.floor(Math.random() * staff.length)];
+    const p = products[Math.floor(Math.random() * products.length)];
+    const q = Math.floor(Math.random() * 2) + 1;
+    h += `<div class="feed-item">
+      <span class="feed-time">${feedData[i % feedData.length]}</span>
+      <span class="feed-product">${p.name}</span>
+      <span class="feed-seller">${s.name.split(' ')[0]}</span>
+      <span class="feed-amount">+${fmt(p.price * q)}</span>
+    </div>`;
+  }
+  document.getElementById(containerId).innerHTML = h;
+}
+
+function renderOverview() {
+  const tRev = staff.reduce((s,e) => s+e.rev, 0);
+  const tSales = staff.reduce((s,e) => s+e.sales, 0);
+  document.getElementById('overviewMetrics').innerHTML =
+    metricHTML('Выручка', fmt(tRev), '12.5%', true) +
+    metricHTML('Продаж', tSales.toLocaleString('ru-RU'), '8.3%', true) +
+    metricHTML('Сегодня', fmt(87400), '+18.2% к вчера', true) +
+    metricHTML('Покупателей', customers.length, '+3 новых', true);
+
+  lineC('cOverview','overviewChart', mo, moRev, '#60A5FA');
+  chartState.overview = 'month';
+  generateFeed('overviewFeed', 8);
+}
+
+function renderEmployees() {
+  const tRev = staff.reduce((s,e) => s+e.rev, 0);
+  document.getElementById('empMetrics').innerHTML =
+    metricHTML('Всего', staff.length, staff.filter(s=>s.on).length + ' онлайн', true) +
+    metricHTML('Общая выручка', fmt(tRev), '12.5%', true) +
+    metricHTML('Лучший', staff[0].name.split(' ')[0], fmt(staff[0].rev), true) +
+    metricHTML('Выручка сегодня', fmt(87400), '+18.2%', true);
+
+  let r = '';
+  staff.forEach(s => {
+    r += `<tr>
+      <td class="cell-name">${s.name}</td>
+      <td class="mono">${s.sales}</td>
+      <td class="mono cell-name">${fmt(s.rev)}</td>
+      <td class="mono">${fmt(Math.round(87400 * (s.rev / staff[0].rev) * (0.8 + Math.random() * 0.4)))}</td>
+      <td><span class="tag ${s.on ? 'tag-on' : 'tag-off'}">${s.on ? 'Online' : 'Offline'}</span></td>
+      <td><span class="link" onclick="showEmp(${s.id})">Открыть →</span></td>
+    </tr>`;
+  });
+  document.getElementById('empTbody').innerHTML = r;
+}
+
+function showEmp(id) {
+  const s = staff.find(e => e.id === id);
+  if (!s) return;
+  page = 'emp-detail';
+  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+  document.getElementById('p-emp-detail').classList.add('active');
+  document.getElementById('pageTitle').textContent = s.name;
+  buildNav();
+
+  document.getElementById('empBar').innerHTML = `
+    <div class="emp-ava">${s.init}</div>
+    <div><div class="emp-name">${s.name}</div><div class="emp-meta"><span class="tag ${s.on ? 'tag-on' : 'tag-off'}">${s.on ? 'Online' : 'Offline'}</span></div></div>
+    <button class="back-link" onclick="go('employees')">← Назад</button>`;
+
+  const rank = staff.indexOf(s) + 1;
+  document.getElementById('empDetailMetrics').innerHTML =
+    metricHTML('Выручка', fmt(s.rev), '9.2%', true) +
+    metricHTML('Продаж', s.sales, '6.8%', true) +
+    metricHTML('Сегодня', fmt(Math.round(87400 * (s.rev / staff[0].rev))), '+к вчера', true) +
+    metricHTML('Рейтинг', '#' + rank, 'из ' + staff.length, true);
+
+  const f = s.rev / staff[0].rev;
+  currentEmpFactor = f;
+  chartState.emp = 'month';
+  lineC('cEmp','empChart', mo, moRev.map(v => Math.round(v*f*(0.85+Math.random()*0.3))), '#60A5FA');
+  generateFeed('empFeed', 6, s.id);
+}
+
+function renderMy() {
+  const s = staff[0];
+  document.getElementById('myMetrics').innerHTML =
+    metricHTML('Моя выручка', fmt(s.rev), '11.2%', true) +
+    metricHTML('Мои продажи', s.sales, '7.1%', true) +
+    metricHTML('Сегодня', fmt(14200), '+22% к вчера', true) +
+    metricHTML('Мой рейтинг', '#1', 'из ' + staff.length, true);
+
+  chartState.my = 'month';
+  lineC('cMy','myChart', mo, moRev.map(v => Math.round(v*0.22*(0.85+Math.random()*0.3))), '#4ADE80');
+  generateFeed('myFeed', 6, 1);
+}
+
+function renderCustomers() {
+  const tSpent = customers.reduce((s,c) => s+c.spent, 0);
+  const tPurch = customers.reduce((s,c) => s+c.purchases, 0);
+  const goldCount = customers.filter(c => c.tier === 'gold').length;
+  document.getElementById('custMetrics').innerHTML =
+    metricHTML('Покупателей', customers.length, '+3 за месяц', true) +
+    metricHTML('Общие траты', fmt(tSpent), '14.2%', true) +
+    metricHTML('Всего покупок', tPurch, '9.6%', true) +
+    metricHTML('Gold клиентов', goldCount, Math.round(goldCount/customers.length*100) + '%', true);
+
+  let r = '';
+  customers.forEach(c => {
+    const nextTier = c.tier === 'none' ? tierThresholds.bronze : c.tier === 'bronze' ? tierThresholds.silver : c.tier === 'silver' ? tierThresholds.gold : null;
+    const progress = nextTier ? Math.min(c.spent / nextTier * 100, 100) : 100;
+    const barColor = c.tier === 'gold' ? 'var(--amber)' : c.tier === 'silver' ? '#94A3B8' : c.tier === 'bronze' ? '#C4956A' : 'var(--text-3)';
+    r += `<tr>
+      <td class="mono" style="color:var(--text-3)">${c.id}</td>
+      <td class="cell-name">${c.name}</td>
+      <td class="mono">${c.purchases}</td>
+      <td class="mono cell-name">${fmt(c.spent)}</td>
+      <td>
+        <span class="tag tag-${c.tier}">${tierNames[c.tier]}</span>
+        <div class="discount-bar"><div class="discount-track"><div class="discount-fill" style="width:${progress}%;background:${barColor}"></div></div></div>
+      </td>
+      <td class="mono" style="color:${c.discount > 0 ? 'var(--green)' : 'var(--text-3)'}">${c.discount > 0 ? c.discount + '%' : '—'}</td>
+      <td><span class="link" onclick="showCust('${c.id}')">Открыть →</span></td>
+    </tr>`;
+  });
+  document.getElementById('custTbody').innerHTML = r;
+}
+
+function showCust(cid) {
+  const c = customers.find(x => x.id === cid);
+  if (!c) return;
+  page = 'cust-detail';
+  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+  document.getElementById('p-cust-detail').classList.add('active');
+  document.getElementById('pageTitle').textContent = c.name;
+  buildNav();
+
+  const nextTier = c.tier === 'none' ? 'Bronze' : c.tier === 'bronze' ? 'Silver' : c.tier === 'silver' ? 'Gold' : null;
+  const nextThreshold = c.tier === 'none' ? tierThresholds.bronze : c.tier === 'bronze' ? tierThresholds.silver : c.tier === 'silver' ? tierThresholds.gold : null;
+  const untilNext = nextThreshold ? fmt(nextThreshold - c.spent) : '—';
+  const progressText = nextTier ? `До ${nextTier}: ${untilNext}` : 'Максимальный уровень';
+
+  document.getElementById('custBar').innerHTML = `
+    <div class="emp-ava">${c.name.split(' ').map(w=>w[0]).join('')}</div>
+    <div>
+      <div class="emp-name">${c.name}</div>
+      <div class="emp-meta">${c.id} · Последний визит: ${c.lastVisit} · <span class="tag tag-${c.tier}">${tierNames[c.tier]}</span></div>
+    </div>
+    <button class="back-link" onclick="go('customers')">← Назад</button>`;
+
+  document.getElementById('custDetailMetrics').innerHTML =
+    metricHTML('Потрачено', fmt(c.spent), '+ к пр. мес.', true) +
+    metricHTML('Покупок', c.purchases, '', true) +
+    metricHTML('Последний визит', c.lastVisit, '', true) +
+    metricHTML('Скидка', c.discount > 0 ? c.discount + '%' : 'Нет', progressText, true);
+
+  const custMo = moRev.map(v => Math.round(v * (c.spent / 1500000) * (0.6 + Math.random() * 0.8)));
+  currentCustFactor = c.spent / 1500000;
+  chartState.cust = 'month';
+  lineC('cCust','custChart', mo, custMo, '#60A5FA');
+
+  // Recent purchases
+  const purchaseDates = [
+    '20.03.2026 13:42','19.03.2026 16:18','18.03.2026 11:35',
+    '17.03.2026 14:52','16.03.2026 10:07','15.03.2026 17:23','14.03.2026 12:41'
+  ];
+  let pr = '';
+  const numPurchases = Math.min(c.purchases, 7);
+  for (let i = 0; i < numPurchases; i++) {
+    const p = products[Math.floor(Math.random() * products.length)];
+    const q = Math.floor(Math.random() * 2) + 1;
+    pr += `<tr>
+      <td class="mono">${purchaseDates[i % purchaseDates.length]}</td>
+      <td class="cell-name">${p.name}</td>
+      <td>${p.cat}</td>
+      <td class="mono">${q}</td>
+      <td class="mono cell-name">${fmt(p.price * q)}</td>
+    </tr>`;
+  }
+  document.getElementById('custPurchases').innerHTML = pr;
+}
+
+// ═══ SALES DATA (persistent) ═══
+const salesData = [];
+let editingIdx = -1;
+
+function initSalesData() {
+  if (salesData.length > 0) return;
+  const timestamps = [
+    '20.03.2026 14:32','20.03.2026 13:45','20.03.2026 12:14','20.03.2026 11:03',
+    '20.03.2026 10:18','19.03.2026 17:34','19.03.2026 15:52','19.03.2026 14:08',
+    '19.03.2026 11:27','18.03.2026 16:41'
+  ];
+  for (let i = 0; i < 10; i++) {
+    const s = staff[Math.floor(Math.random()*staff.length)];
+    const p = products[Math.floor(Math.random()*products.length)];
+    const q = Math.floor(Math.random()*3)+1;
+    salesData.push({
+      id: i,
+      date: timestamps[i],
+      staffId: s.id,
+      productIdx: products.indexOf(p),
+      qty: q,
+      total: p.price * q,
+      edited: false
+    });
+  }
+}
+
+function renderSales() {
+  initSalesData();
+  const isAdmin = role === 'admin';
+  document.getElementById('salesActionsHeader').textContent = isAdmin ? 'Действия' : '';
+
+  let r = '';
+  salesData.forEach((sale, idx) => {
+    const s = staff.find(x => x.id === sale.staffId);
+    const p = products[sale.productIdx];
+    const editedTag = sale.edited ? '<span class="edited-tag">изм.</span>' : '';
+    const actions = isAdmin ? `<td><div class="row-actions">
+      <button class="row-btn" onclick="openEditModal(${idx})">Изм.</button>
+      <button class="row-btn row-btn-del" onclick="confirmDelete(${idx})">✕</button>
+    </div></td>` : '<td></td>';
+
+    r += `<tr>
+      <td class="mono">${sale.date}</td>
+      <td>${s ? s.name.split(' ')[0] : '—'}</td>
+      <td class="cell-name">${p.name}${editedTag}</td>
+      <td>${p.cat}</td>
+      <td class="mono">${sale.qty}</td>
+      <td class="mono cell-name">${fmt(sale.total)}</td>
+      ${actions}
+    </tr>`;
+  });
+  document.getElementById('salesTbody').innerHTML = r;
+}
+
+function openEditModal(idx) {
+  editingIdx = idx;
+  const sale = salesData[idx];
+  const p = products[sale.productIdx];
+
+  document.getElementById('modalTitle').textContent = 'Редактировать продажу';
+  document.getElementById('editDeleteBtn').style.display = 'inline-block';
+
+  // populate staff select
+  let staffOpts = '';
+  staff.forEach(s => {
+    staffOpts += `<option value="${s.id}" ${s.id === sale.staffId ? 'selected' : ''}>${s.name}</option>`;
+  });
+  document.getElementById('editStaff').innerHTML = staffOpts;
+
+  // populate product select
+  let prodOpts = '';
+  products.forEach((pr, i) => {
+    prodOpts += `<option value="${i}" ${i === sale.productIdx ? 'selected' : ''}>${pr.name} — ${fmt(pr.price)}</option>`;
+  });
+  document.getElementById('editProduct').innerHTML = prodOpts;
+
+  document.getElementById('editDate').value = sale.date;
+  document.getElementById('editQty').value = sale.qty;
+  updateEditSummary();
+
+  document.getElementById('editModal').classList.add('open');
+}
+
+function updateEditSummary() {
+  const prodIdx = parseInt(document.getElementById('editProduct').value);
+  const qty = parseInt(document.getElementById('editQty').value) || 1;
+  const p = products[prodIdx];
+  if (p) {
+    document.getElementById('editSummary').textContent = `Итого: ${fmt(p.price * qty)}`;
+  }
+}
+
+function saveSale() {
+  const sale = salesData[editingIdx];
+  sale.date = document.getElementById('editDate').value;
+  sale.staffId = parseInt(document.getElementById('editStaff').value);
+  sale.productIdx = parseInt(document.getElementById('editProduct').value);
+  sale.qty = parseInt(document.getElementById('editQty').value) || 1;
+  sale.total = products[sale.productIdx].price * sale.qty;
+  sale.edited = true;
+  closeModal();
+  renderSales();
+  recalcStats();
+}
+
+function confirmDelete(idx) {
+  editingIdx = idx;
+  const sale = salesData[idx];
+  const p = products[sale.productIdx];
+  if (confirm(`Удалить продажу "${p.name}" на ${fmt(sale.total)}?`)) {
+    deleteSale();
+  }
+}
+
+function deleteSale() {
+  salesData.splice(editingIdx, 1);
+  closeModal();
+  renderSales();
+  recalcStats();
+}
+
+function closeModal() {
+  document.getElementById('editModal').classList.remove('open');
+  editingIdx = -1;
+}
+
+function recalcStats() {
+  // recalculate total revenue from salesData
+  const totalFromSales = salesData.reduce((sum, s) => sum + s.total, 0);
+  // update overview if visible
+  if (page === 'overview') renderOverview();
+}
+
+// live update summary on change
+document.addEventListener('change', function(e) {
+  if (e.target.id === 'editProduct' || e.target.id === 'editQty') updateEditSummary();
+});
+document.addEventListener('input', function(e) {
+  if (e.target.id === 'editQty') updateEditSummary();
+});
+
+// close modal on overlay click
+document.addEventListener('click', function(e) {
+  if (e.target.id === 'editModal') closeModal();
+});
+
+// ═══ INIT ═══
+buildNav();
+renderOverview();
+</script>
+</body>
+</html>

@@ -1,6 +1,18 @@
-node_modules/
+# Nuxt
+.nuxt/
+.output/
 dist/
+
+# Node
+node_modules/
+
+# Env
 .env
-.DS_Store
+.env.*
+!.env.example
+
+# Misc
 *.log
-dashboard-v2.html
+*.rar
+.DS_Store
+.claude/

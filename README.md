@@ -1,7 +1,7 @@
 # PZR Analytics
 
 Аналітичний дашборд та система управління продажами для онлайн-магазину гри ARK: Survival Ascended.
-
+Демо - https://pzr.netlify.app/
 ---
 
 ## Про проєкт

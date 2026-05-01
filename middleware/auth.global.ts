@@ -13,7 +13,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   if (isPublic) {
     if (isLoggedIn.value) {
-      return navigateTo(isAdmin.value ? '/dashboard' : '/my')
+      return navigateTo(isAdmin.value ? '/' : '/my')
     }
     return
   }
@@ -24,7 +24,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   const adminOnlyPrefixes = ['/dashboard/employees', '/dashboard/customers']
   const isAdminOnly =
-    to.path === '/dashboard' ||
+    to.path === '/' ||
     adminOnlyPrefixes.some(p => to.path === p || to.path.startsWith(p + '/'))
 
   if (isAdminOnly && !isAdmin.value) {

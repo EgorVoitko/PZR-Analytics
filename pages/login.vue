@@ -60,7 +60,7 @@ async function handleSubmit() {
   loading.value  = true
   try {
     await signIn(email.value, password.value)
-    await navigateTo(isAdmin.value ? '/dashboard' : '/my', { replace: true })
+    await navigateTo(isAdmin.value ? '/' : '/my', { replace: true })
   } catch (err: any) {
     errorMsg.value = err.message ?? 'Login failed. Check your credentials.'
   } finally {

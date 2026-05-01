@@ -3,7 +3,7 @@
     <nav class="nav">
       <template v-if="isAdmin">
         <div class="nav-label">Analytics</div>
-        <NuxtLink to="/dashboard" class="nav-item" active-class="active" exact-active-class="active">
+        <NuxtLink to="/" class="nav-item" active-class="active" exact-active-class="active">
           <span class="mi nav-icon">bar_chart</span>
           Overview
         </NuxtLink>

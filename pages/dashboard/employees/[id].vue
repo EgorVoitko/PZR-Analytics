@@ -40,7 +40,7 @@
 definePageMeta({ title: 'Employee' })
 
 const route   = useRoute()
-const staffId = computed(() => Number(route.params.id))
+const staffId = computed(() => route.params.id as string)
 
 const { getById } = useStaff()
 

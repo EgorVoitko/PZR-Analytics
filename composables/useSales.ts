@@ -99,17 +99,23 @@ export function useSales(staffId: any = null) {
   const salesCount = computed(() => sales.value.length)
 
   const todayRevenue = computed(() => {
-    const d = new Date()
+    const d = refDate.value
     const today = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`
     return sales.value
       .filter((s: any) => s.date.startsWith(today))
       .reduce((sum: number, s: any) => sum + s.total, 0)
   })
 
+  // Reference date: date of the latest sale, fallback to today
+  const refDate = computed(() => {
+    const latest = sales.value[0]
+    return latest ? new Date(latest.createdAt) : new Date()
+  })
+
   const revenueByMonth = computed(() => {
-    const now = new Date()
-    const year  = now.getFullYear()
-    const month = now.getMonth() + 1
+    const ref   = refDate.value
+    const year  = ref.getFullYear()
+    const month = ref.getMonth() + 1
     const days  = new Date(year, month, 0).getDate()
     return Array.from({ length: days }, (_, i) => {
       const day = i + 1
@@ -123,8 +129,8 @@ export function useSales(staffId: any = null) {
 
   const revenueByWeek = computed(() =>
     Array.from({ length: 7 }, (_, i) => {
-      const d = new Date()
-      d.setDate(d.getDate() - (6 - i))
+      const d = new Date(refDate.value)
+      d.setDate(refDate.value.getDate() - (6 - i))
       const dateStr = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`
       const revenue = sales.value
         .filter((s: any) => s.date.startsWith(dateStr))

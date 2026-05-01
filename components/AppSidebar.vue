@@ -72,6 +72,21 @@
       </template>
     </nav>
 
+    <!-- Personal payment link for employees -->
+    <div v-if="!isAdmin && user?.staffId" class="pay-link-wrap">
+      <div class="pay-link-label">My payment link</div>
+      <button class="pay-link-btn" :title="copied ? 'Copied!' : 'Copy link'" @click="copyLink">
+        <svg v-if="!copied" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="5" y="5" width="9" height="9" rx="1.5"/>
+          <path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/>
+        </svg>
+        <svg v-else width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <polyline points="2 8 6 12 14 4"/>
+        </svg>
+        {{ copied ? 'Copied!' : 'Copy link' }}
+      </button>
+    </div>
+
     <div class="sidebar-bottom">
       <div class="user-card">
         <div class="user-ava">{{ user?.initials ?? '?' }}</div>
@@ -93,6 +108,16 @@
 
 <script setup lang="ts">
 const { user, isAdmin, signOut } = useAuth()
+
+const copied = ref(false)
+
+function copyLink() {
+  if (!user.value?.staffId) return
+  const url = `${window.location.origin}/pay?staff=${user.value.staffId}`
+  navigator.clipboard.writeText(url)
+  copied.value = true
+  setTimeout(() => { copied.value = false }, 2000)
+}
 </script>
 
 <style scoped>
@@ -235,5 +260,42 @@ const { user, isAdmin, signOut } = useAuth()
   color: var(--red);
   border-color: rgba(248, 113, 113, 0.3);
   background: rgba(248, 113, 113, 0.06);
+}
+
+.pay-link-wrap {
+  padding: 0 8px 8px;
+}
+
+.pay-link-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  padding: 10px 0 4px;
+}
+
+.pay-link-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-2);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.pay-link-btn:hover {
+  color: var(--text);
+  border-color: var(--border-light);
+  background: var(--bg-hover);
 }
 </style>

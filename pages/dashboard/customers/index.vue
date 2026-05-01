@@ -25,7 +25,7 @@
         </thead>
         <tbody>
           <tr v-for="c in allCustomers" :key="c.id">
-            <td class="mono muted">#{{ c.id.padStart(4, '0') }}</td>
+            <td class="mono muted">#{{ String(c.id).padStart(4, '0') }}</td>
             <td class="cell-name">{{ c.name }}</td>
             <td class="mono">{{ c.purchases }}</td>
             <td class="mono">{{ fmt(c.spent) }}</td>

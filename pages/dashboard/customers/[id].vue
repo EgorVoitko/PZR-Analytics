@@ -19,7 +19,9 @@
       <UiMetricCard label="Discount"     :value="customer.discount + '%'" />
     </div>
 
-    <ChartsRevenueChart :week-data="spendWeek" :month-data="spendMonth" :year-data="spendYear" color="#A78BFA" />
+    <ClientOnly>
+      <ChartsRevenueChart :week-data="spendWeek" :month-data="spendMonth" :year-data="spendYear" color="#A78BFA" />
+    </ClientOnly>
 
     <div class="tbl-wrap">
       <div class="tbl-header">

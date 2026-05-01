@@ -21,12 +21,14 @@
       <UiMetricCard label="Avg Sale" :value="fmt(avgSale)" />
     </div>
 
-    <ChartsRevenueChart
-      :week-data="revenueByWeek"
-      :month-data="revenueByMonth"
-      :year-data="revenueByYear"
-      color="#60A5FA"
-    />
+    <ClientOnly>
+      <ChartsRevenueChart
+        :week-data="revenueByWeek"
+        :month-data="revenueByMonth"
+        :year-data="revenueByYear"
+        color="#60A5FA"
+      />
+    </ClientOnly>
 
     <UiLiveFeed :sales="feedSales" :limit="8" />
   </div>

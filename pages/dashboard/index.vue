@@ -9,21 +9,27 @@
 
     <div class="main-grid">
       <div class="col-left">
-        <ChartsRevenueChart
-          :week-data="revenueByWeek"
-          :month-data="revenueByMonth"
-          :year-data="revenueByYear"
-          color="#60A5FA"
-        />
+        <ClientOnly>
+          <ChartsRevenueChart
+            :week-data="revenueByWeek"
+            :month-data="revenueByMonth"
+            :year-data="revenueByYear"
+            color="#60A5FA"
+          />
+        </ClientOnly>
         <UiLiveFeed :sales="feedSales" :limit="8" />
       </div>
 
       <div class="col-right">
-        <ChartsEarningsByType :items="earningsByType" />
+        <ClientOnly>
+          <ChartsEarningsByType :items="earningsByType" />
+        </ClientOnly>
       </div>
     </div>
 
-    <ChartsMonthCompareChart :current-data="revenueByMonth" :prev-data="prevMonthByDay" />
+    <ClientOnly>
+      <ChartsMonthCompareChart :current-data="revenueByMonth" :prev-data="prevMonthByDay" />
+    </ClientOnly>
   </div>
 </template>
 

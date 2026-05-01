@@ -23,12 +23,14 @@
 
     <div class="main-grid">
       <div class="col-left">
-        <ChartsRevenueChart
-          :week-data="revenueByWeek"
-          :month-data="revenueByMonth"
-          :year-data="revenueByYear"
-          color="#4ADE80"
-        />
+        <ClientOnly>
+          <ChartsRevenueChart
+            :week-data="revenueByWeek"
+            :month-data="revenueByMonth"
+            :year-data="revenueByYear"
+            color="#4ADE80"
+          />
+        </ClientOnly>
         <UiLiveFeed :sales="feedSales" :limit="8" />
       </div>
 
@@ -51,11 +53,15 @@
           <div v-if="feedSales.length === 0" class="tx-empty">No transactions yet</div>
         </div>
 
-        <ChartsEarningsByType :items="earningsByType" />
+        <ClientOnly>
+          <ChartsEarningsByType :items="earningsByType" />
+        </ClientOnly>
       </div>
     </div>
 
-    <ChartsMonthCompareChart :current-data="revenueByMonth" :prev-data="prevMonthByDay" />
+    <ClientOnly>
+      <ChartsMonthCompareChart :current-data="revenueByMonth" :prev-data="prevMonthByDay" />
+    </ClientOnly>
   </div>
 </template>
 

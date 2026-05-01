@@ -9,7 +9,7 @@
           &ensp;Customer since {{ firstVisit }}
         </div>
       </div>
-      <NuxtLink to="/dashboard/customers" class="back-btn">← Back</NuxtLink>
+      <NuxtLink to="/dashboard/customers" class="back-btn">Back</NuxtLink>
     </div>
 
     <div class="metrics">
@@ -194,21 +194,22 @@ function tierLabel(t: string) { return ({ gold: 'Gold', silver: 'Silver', bronze
 
 .back-btn {
   margin-left: auto;
-  font-size: 12px;
-  color: var(--text-3);
-  border: 1px solid var(--border);
-  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border-light);
+  padding: 6px 16px;
   border-radius: 6px;
-  background: transparent;
+  background: var(--bg-hover);
+  color: var(--text-2);
   font-family: inherit;
-  font-weight: 500;
   transition: all 0.15s;
   text-decoration: none;
 }
 
 .back-btn:hover {
-  color: var(--text-2);
-  border-color: var(--border-light);
+  color: var(--text);
+  background: var(--border);
 }
 
 .metrics {

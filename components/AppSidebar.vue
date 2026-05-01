@@ -4,44 +4,21 @@
       <template v-if="isAdmin">
         <div class="nav-label">Analytics</div>
         <NuxtLink to="/dashboard" class="nav-item" active-class="active" exact-active-class="active">
-          <span class="nav-icon">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-              <rect x="2" y="8" width="3" height="6" rx="0.5"/>
-              <rect x="7" y="4" width="3" height="10" rx="0.5"/>
-              <rect x="12" y="2" width="3" height="12" rx="0.5"/>
-            </svg>
-          </span>
+          <span class="mi nav-icon">bar_chart</span>
           Overview
         </NuxtLink>
         <NuxtLink to="/dashboard/employees" class="nav-item" active-class="active">
-          <span class="nav-icon">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-              <circle cx="6" cy="5" r="2.5"/>
-              <path d="M1 14v-1a4 4 0 0 1 4-4h2a4 4 0 0 1 4 4v1"/>
-              <circle cx="12" cy="5" r="2" opacity="0.5"/>
-            </svg>
-          </span>
+          <span class="mi nav-icon">group</span>
           Employees
         </NuxtLink>
         <NuxtLink to="/dashboard/customers" class="nav-item" active-class="active">
-          <span class="nav-icon">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-              <circle cx="8" cy="5" r="3"/>
-              <path d="M2 15v-1a6 6 0 0 1 12 0v1"/>
-            </svg>
-          </span>
+          <span class="mi nav-icon">person</span>
           Customers
         </NuxtLink>
 
         <div class="nav-label">Data</div>
         <NuxtLink to="/dashboard/sales" class="nav-item" active-class="active">
-          <span class="nav-icon">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-              <line x1="3" y1="4" x2="13" y2="4"/>
-              <line x1="3" y1="8" x2="13" y2="8"/>
-              <line x1="3" y1="12" x2="10" y2="12"/>
-            </svg>
-          </span>
+          <span class="mi nav-icon">receipt_long</span>
           Sales
         </NuxtLink>
       </template>
@@ -49,24 +26,13 @@
       <template v-else>
         <div class="nav-label">My</div>
         <NuxtLink to="/my" class="nav-item" active-class="active">
-          <span class="nav-icon">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-              <circle cx="8" cy="5" r="3"/>
-              <path d="M2 15v-1a6 6 0 0 1 12 0v1"/>
-            </svg>
-          </span>
+          <span class="mi nav-icon">dashboard</span>
           Dashboard
         </NuxtLink>
 
         <div class="nav-label">Data</div>
         <NuxtLink to="/dashboard/sales" class="nav-item" active-class="active">
-          <span class="nav-icon">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-              <line x1="3" y1="4" x2="13" y2="4"/>
-              <line x1="3" y1="8" x2="13" y2="8"/>
-              <line x1="3" y1="12" x2="10" y2="12"/>
-            </svg>
-          </span>
+          <span class="mi nav-icon">receipt_long</span>
           My Sales
         </NuxtLink>
       </template>
@@ -76,13 +42,7 @@
     <div v-if="!isAdmin && user?.staffId" class="pay-link-wrap">
       <div class="pay-link-label">My payment link</div>
       <button class="pay-link-btn" :title="copied ? 'Copied!' : 'Copy link'" @click="copyLink">
-        <svg v-if="!copied" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-          <rect x="5" y="5" width="9" height="9" rx="1.5"/>
-          <path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/>
-        </svg>
-        <svg v-else width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-          <polyline points="2 8 6 12 14 4"/>
-        </svg>
+        <span class="mi" style="font-size:15px">{{ copied ? 'check' : 'content_copy' }}</span>
         {{ copied ? 'Copied!' : 'Copy link' }}
       </button>
     </div>
@@ -95,11 +55,7 @@
           <div class="user-role">{{ user?.roleLabel ?? '' }}</div>
         </div>
         <button class="logout-btn" title="Sign out" @click="signOut">
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-            <path d="M6 2H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>
-            <path d="M11 11l3-3-3-3"/>
-            <line x1="14" y1="8" x2="6" y2="8"/>
-          </svg>
+          <span class="mi" style="font-size:16px">logout</span>
         </button>
       </div>
     </div>
@@ -187,6 +143,7 @@ function copyLink() {
   justify-content: center;
   flex-shrink: 0;
   color: inherit;
+  font-size: 18px;
 }
 
 .sidebar-bottom {

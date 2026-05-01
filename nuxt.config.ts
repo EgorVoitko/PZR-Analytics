@@ -13,9 +13,10 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
 
   runtimeConfig: {
-    stripeSecretKey:  process.env.STRIPE_SECRET_KEY  || '',
-    supabaseUrl:      process.env.SUPABASE_URL        || '',
-    supabaseKey:      process.env.SUPABASE_KEY        || '',
+    stripeSecretKey:     process.env.STRIPE_SECRET_KEY     || '',
+    supabaseUrl:         process.env.SUPABASE_URL          || '',
+    supabaseKey:         process.env.SUPABASE_KEY          || '',
+    supabaseServiceKey:  process.env.SUPABASE_SERVICE_KEY  || '',
     public: {
       stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '',
     },

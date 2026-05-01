@@ -28,7 +28,12 @@
     </div>
 
     <ClientOnly>
-      <ChartsMonthCompareChart :current-data="revenueByMonth" :prev-data="prevMonthByDay" />
+      <ChartsMonthCompareChart
+        v-if="totalSales > 0"
+        :key="totalSales"
+        :current-data="revenueByMonth"
+        :prev-data="prevMonthByDay"
+      />
     </ClientOnly>
   </div>
 </template>
@@ -54,7 +59,8 @@ const customerCount = computed(() => allCustomers.value.length)
 
 const feedSales = computed(() =>
   recentSales(8).map((sale: any) => ({
-    id: sale.id, date: sale.date, productName: sale.productName, staffName: sale.staffName, total: sale.total,
+    id: sale.id, date: sale.date, productName: sale.productName,
+    productType: sale.productType, staffName: sale.staffName, total: sale.total,
   }))
 )
 

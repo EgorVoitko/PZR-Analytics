@@ -6,8 +6,9 @@ function calcTier(spent: number) {
 }
 
 // Module-level singletons
-const _customers = ref<any[]>([])
-const _ready     = ref(false)
+const _customers    = ref<any[]>([])
+const _ready        = ref(false)
+const _subscribed   = ref(false)
 
 export function useCustomers() {
   const client = useSupabaseClient()
@@ -22,6 +23,27 @@ export function useCustomers() {
       _ready.value = true
     }
     doInit()
+  }
+
+  if (!_subscribed.value) {
+    _subscribed.value = true
+    client
+      .channel('customers-changes')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'customers' }, payload => {
+        _customers.value.push(payload.new as any)
+        _customers.value.sort((a, b) => b.spent - a.spent)
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'customers' }, payload => {
+        const idx = _customers.value.findIndex(c => c.id === (payload.new as any).id)
+        if (idx !== -1) {
+          _customers.value[idx] = payload.new as any
+          _customers.value.sort((a, b) => b.spent - a.spent)
+        }
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'customers' }, payload => {
+        _customers.value = _customers.value.filter(c => c.id !== (payload.old as any).id)
+      })
+      .subscribe()
   }
 
   const allCustomers = computed(() =>

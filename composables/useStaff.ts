@@ -24,5 +24,16 @@ export function useStaff() {
     return _staff.value.find(s => s.id === id) ?? null
   }
 
-  return { allStaff, getById }
+  async function refresh() {
+    _ready.value = false
+    const { data } = await (client as any).rpc('get_staff_stats')
+    _staff.value = (data ?? []).map((s: any) => ({
+      ...s,
+      sales:   Number(s.sales),
+      revenue: Number(s.revenue),
+    }))
+    _ready.value = true
+  }
+
+  return { allStaff, getById, refresh }
 }

@@ -2,10 +2,8 @@
   <header class="header">
     <h1 class="page-title">{{ title }}</h1>
     <div class="header-right">
-      <button class="icon-btn" title="Export">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 10v2h8v-2M7 2v7M4 5l3-3 3 3"/>
-        </svg>
+      <button class="icon-btn" title="Export to Excel" @click="exportForCurrentPage">
+        <span class="mi" style="font-size:18px">download</span>
       </button>
     </div>
   </header>
@@ -13,6 +11,8 @@
 
 <script setup lang="ts">
 defineProps<{ title: string }>()
+
+const { exportForCurrentPage } = useExport()
 </script>
 
 <style scoped>

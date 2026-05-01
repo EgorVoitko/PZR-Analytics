@@ -7,7 +7,10 @@
 
     <div v-for="item in displaySales" :key="item.id" class="feed-item">
       <span class="feed-time">{{ item.date }}</span>
-      <span class="feed-product">{{ item.productName }}</span>
+      <span class="feed-product">
+        {{ item.productName }}
+        <span v-if="item.productType" class="feed-cat">{{ categoryLabel(item.productType) }}</span>
+      </span>
       <span class="feed-seller">{{ item.staffName }}</span>
       <span class="feed-amount">+{{ fmt(item.total) }}</span>
     </div>
@@ -17,9 +20,17 @@
 </template>
 
 <script setup lang="ts">
+const CATEGORY_LABELS: Record<string, string> = {
+  dino: 'Dino', boss: 'Boss', basic_resource: 'Basic Resource',
+  advanced_resource: 'Adv. Resource', consumable: 'Consumable', dye: 'Dye',
+  weapon: 'Weapon', armor: 'Armor', saddle: 'Saddle',
+  tek_structure: 'Tek', metal_structure: 'Metal', utility: 'Utility',
+}
+
 const props = defineProps<{ sales: any[]; limit?: number }>()
 const displaySales = computed(() => props.sales.slice(0, props.limit ?? 8))
 function fmt(n: number) { return '$' + n.toLocaleString('en-US') }
+function categoryLabel(type: string) { return CATEGORY_LABELS[type] ?? type }
 </script>
 
 <style scoped>
@@ -91,6 +102,20 @@ function fmt(n: number) { return '$' + n.toLocaleString('en-US') }
   font-weight: 500;
   color: var(--text);
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.feed-cat {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-3);
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  padding: 1px 5px;
+  border-radius: 3px;
+  flex-shrink: 0;
 }
 
 .feed-seller {

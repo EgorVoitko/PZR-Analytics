@@ -87,7 +87,7 @@
 
         <div class="field">
           <label class="label">Full Name</label>
-          <input class="input" v-model="name" type="text" placeholder="John Doe" required :disabled="loading" />
+          <input class="input" v-model="name" type="text" placeholder="Name" required :disabled="loading" />
         </div>
 
         <div class="field">

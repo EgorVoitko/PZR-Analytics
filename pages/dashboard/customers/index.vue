@@ -41,7 +41,7 @@
               </div>
             </td>
             <td class="cell-action">
-              <NuxtLink :to="`/dashboard/customers/${c.id}`" class="row-btn">View →</NuxtLink>
+              <NuxtLink :to="`/dashboard/customers/${c.id}`" class="row-btn">View</NuxtLink>
             </td>
           </tr>
         </tbody>
@@ -198,22 +198,22 @@ tr:hover td {
 
 .row-btn {
   display: inline-block;
-  padding: 3px 10px;
+  padding: 4px 12px;
   border-radius: 4px;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text-3);
+  border: 1px solid var(--border-light);
+  background: var(--bg-hover);
+  color: var(--text-2);
   transition: all 0.15s;
   text-decoration: none;
   font-family: inherit;
 }
 
 .row-btn:hover {
-  color: var(--text-2);
-  border-color: var(--border-light);
+  color: var(--text);
+  background: var(--border);
 }
 
 </style>

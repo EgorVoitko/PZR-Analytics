@@ -1,11 +1,10 @@
 function calcTier(spent: number) {
-  if (spent > 5000) return 'gold'
-  if (spent > 2000) return 'silver'
-  if (spent > 1000) return 'bronze'
+  if (spent > 1000) return 'gold'
+  if (spent > 500)  return 'silver'
+  if (spent > 250)  return 'bronze'
   return 'none'
 }
 
-// Module-level singletons
 const _customers    = ref<any[]>([])
 const _ready        = ref(false)
 const _subscribed   = ref(false)

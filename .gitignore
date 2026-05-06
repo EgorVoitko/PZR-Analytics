@@ -12,7 +12,7 @@ node_modules/
 !.env.example
 
 # Supabase
-supabase/migrations/
+supabase/
 
 # Misc
 *.log

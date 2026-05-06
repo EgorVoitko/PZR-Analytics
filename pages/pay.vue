@@ -174,8 +174,12 @@ onMounted(async () => {
         method: 'POST',
         body: { sessionId: route.query.session_id },
       }) as any
-      saleId.value  = res.saleId
-      success.value = true
+      saleId.value           = res.saleId
+      confirmedProduct.value = res.qty > 1
+        ? `${res.productName} × ${res.qty}`
+        : res.productName
+      confirmedTotal.value   = '$' + (res.total / 100).toLocaleString('en-US', { minimumFractionDigits: 2 })
+      success.value          = true
     } catch (err: any) {
       errorMsg.value = err.data?.message ?? 'Could not confirm payment.'
     } finally {

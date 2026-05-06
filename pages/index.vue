@@ -48,10 +48,18 @@ const TYPE_LABELS: Record<string, string> = {
   'tek_structure': 'Tek Structure', 'metal_structure': 'Metal Structure', 'utility': 'Utility',
 }
 const TYPE_COLORS: Record<string, string> = {
-  'dino': '#4ADE80', 'boss': '#F87171', 'basic_resource': '#60A5FA',
-  'advanced_resource': '#A78BFA', 'consumable': '#34D399', 'dye': '#FACC15',
-  'weapon': '#FB923C', 'armor': '#94A3B8', 'saddle': '#C4956A',
-  'tek_structure': '#38BDF8', 'metal_structure': '#888', 'utility': '#6EE7B7',
+  'dino':              '#4ADE80',
+  'boss':              '#F87171',
+  'basic_resource':    '#60A5FA',
+  'advanced_resource': '#C084FC',
+  'consumable':        '#06B6D4',
+  'dye':               '#FACC15',
+  'weapon':            '#FB923C',
+  'armor':             '#EC4899',
+  'saddle':            '#84CC16',
+  'tek_structure':     '#14B8A6',
+  'metal_structure':   '#6366F1',
+  'utility':           '#D946EF',
 }
 
 const { allCustomers } = useCustomers()

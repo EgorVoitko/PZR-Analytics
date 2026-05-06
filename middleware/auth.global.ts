@@ -6,7 +6,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
     await initializeAuth()
   }
 
-  // /pay is always accessible — no redirect even when logged in
   if (to.path === '/pay') return
 
   const isPublic = to.path === '/login'

@@ -111,9 +111,16 @@
           </div>
 
           <div class="modal-field">
+            <label class="modal-label">Category</label>
+            <select class="modal-select" v-model="modal.category" @change="onModalCategoryChange">
+              <option v-for="cat in modalCategories" :key="cat.key" :value="cat.key">{{ cat.label }}</option>
+            </select>
+          </div>
+
+          <div class="modal-field">
             <label class="modal-label">Product</label>
             <select class="modal-select" v-model="modal.productId">
-              <option v-for="p in allProducts" :key="p.id" :value="p.id">{{ p.name }} — ${{ p.price }}</option>
+              <option v-for="p in modalFilteredProducts" :key="p.id" :value="p.id">{{ p.name }} — ${{ p.price }}</option>
             </select>
           </div>
 
@@ -219,8 +226,23 @@ function fmt(n: number) { return '$' + n.toLocaleString('en-US') }
 
 const modal = reactive({
   open: false, isAdd: false, id: null as any,
-  date: '', staffId: null as any, productId: null as any, qty: 1,
+  date: '', staffId: null as any, productId: null as any, qty: 1, category: '',
 })
+
+const modalCategories = computed(() => {
+  const slugs = [...new Set(allProducts.value.map((p: any) => p.type as string))]
+  return slugs.map(key => ({ key, label: CATEGORY_LABELS[key] ?? key }))
+})
+
+const modalFilteredProducts = computed(() =>
+  modal.category
+    ? allProducts.value.filter((p: any) => p.type === modal.category)
+    : allProducts.value
+)
+
+function onModalCategoryChange() {
+  modal.productId = modalFilteredProducts.value[0]?.id ?? null
+}
 
 const modalTotal = computed(() => {
   const price = allProducts.value.find((p: any) => p.id === modal.productId)?.price ?? 0
@@ -228,17 +250,25 @@ const modalTotal = computed(() => {
 })
 
 function openEdit(s: any) {
-  Object.assign(modal, { isAdd: false, id: s.id, date: s.date, staffId: s.staffId, productId: s.productId, qty: s.qty, open: true })
+  const product = allProducts.value.find((p: any) => p.id === s.productId)
+  Object.assign(modal, {
+    isAdd: false, id: s.id, date: s.date, staffId: s.staffId,
+    productId: s.productId, qty: s.qty, open: true,
+    category: product?.type ?? '',
+  })
 }
 
 function openAdd() {
   const now = new Date()
   const pad = (n: number) => String(n).padStart(2, '0')
+  const firstCat = modalCategories.value[0]?.key ?? ''
+  const firstProduct = allProducts.value.find((p: any) => p.type === firstCat)
   Object.assign(modal, {
     isAdd: true, id: null,
     date: `${pad(now.getDate())}.${pad(now.getMonth() + 1)}.${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`,
     staffId: allStaff.value[0]?.id ?? null,
-    productId: allProducts.value[0]?.id ?? null,
+    productId: firstProduct?.id ?? allProducts.value[0]?.id ?? null,
+    category: firstCat,
     qty: 1, open: true,
   })
 }

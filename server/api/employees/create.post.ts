@@ -7,10 +7,15 @@ export default defineEventHandler(async (event) => {
   if (!name?.trim() || !email?.trim() || !password?.trim()) {
     throw createError({ statusCode: 400, message: 'Name, email and password are required' })
   }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    throw createError({ statusCode: 400, message: 'Invalid email format' })
+  }
+  if (password.trim().length < 6) {
+    throw createError({ statusCode: 400, message: 'Password must be at least 6 characters' })
+  }
 
   const supabase = createClient(config.supabaseUrl, config.supabaseServiceKey)
 
-  // Create auth user
   const { data: authData, error: authError } = await supabase.auth.admin.createUser({
     email:         email.trim(),
     password:      password.trim(),
@@ -19,6 +24,7 @@ export default defineEventHandler(async (event) => {
   })
 
   if (authError) {
+    console.error('[employees/create] Supabase auth error:', { email: email.trim(), error: authError })
     throw createError({ statusCode: 400, message: authError.message })
   }
 
@@ -30,7 +36,7 @@ export default defineEventHandler(async (event) => {
     .join('')
     .slice(0, 2)
 
-  // Update profile (auto-created by trigger)
+  // Update profile
   await supabase
     .from('profiles')
     .update({ name: name.trim(), initials, role: 'employee' })

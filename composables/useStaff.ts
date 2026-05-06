@@ -1,4 +1,3 @@
-// Module-level singletons
 const _staff = ref<any[]>([])
 const _ready  = ref(false)
 

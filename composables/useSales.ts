@@ -36,10 +36,10 @@ const _prevMonthRaw = [
   178, 0, 429, 0, 165, 389, 0, 249,
 ]
 
-// Module-level singletons — persist across page navigation
 const _sales      = ref<any[]>([])
 const _ready      = ref(false)
 const _subscribed = ref(false)
+const _polling    = ref(false)
 
 export function useSales(staffId: any = null) {
   const client = useSupabaseClient()
@@ -67,7 +67,10 @@ export function useSales(staffId: any = null) {
           .select('*, product:products(id,name,price,type), staff:profiles(id,name,initials)')
           .eq('id', (payload.new as any).id)
           .single()
-        if (data) _sales.value.unshift(normalize(data))
+        if (data) {
+          const exists = _sales.value.some(s => s.id === (data as any).id)
+          if (!exists) _sales.value.unshift(normalize(data))
+        }
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'sales' }, async payload => {
         const { data } = await client
@@ -84,6 +87,24 @@ export function useSales(staffId: any = null) {
         _sales.value = _sales.value.filter(s => s.id !== (payload.old as any).id)
       })
       .subscribe()
+  }
+
+  if (!_polling.value) {
+    _polling.value = true
+    setInterval(async () => {
+      if (!_ready.value) return
+      const latestDate = _sales.value[0]?.createdAt ?? new Date(0).toISOString()
+      const { data } = await client
+        .from('sales')
+        .select('*, product:products(id,name,price,type), staff:profiles(id,name,initials)')
+        .gt('created_at', latestDate)
+        .order('created_at', { ascending: false })
+      if (data && data.length > 0) {
+        const existingIds = new Set(_sales.value.map((s: any) => s.id))
+        const newSales = data.filter((s: any) => !existingIds.has(s.id)).map(normalize)
+        if (newSales.length > 0) _sales.value.unshift(...newSales)
+      }
+    }, 15000)
   }
 
   const sales = computed(() =>
@@ -106,7 +127,6 @@ export function useSales(staffId: any = null) {
       .reduce((sum: number, s: any) => sum + s.total, 0)
   })
 
-  // Reference date: date of the latest sale, fallback to today
   const refDate = computed(() => {
     const latest = sales.value[0]
     return latest ? new Date(latest.createdAt) : new Date()

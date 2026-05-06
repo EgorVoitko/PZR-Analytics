@@ -17,6 +17,7 @@ export default defineNuxtConfig({
     supabaseUrl:         process.env.SUPABASE_URL          || '',
     supabaseKey:         process.env.SUPABASE_KEY          || '',
     supabaseServiceKey:  process.env.SUPABASE_SERVICE_KEY  || '',
+    discordWebhookUrl:   process.env.DISCORD_WEBHOOK_URL   || '',
     public: {
       stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '',
     },

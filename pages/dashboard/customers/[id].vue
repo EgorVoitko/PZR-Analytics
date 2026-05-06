@@ -49,10 +49,21 @@
 <script setup lang="ts">
 definePageMeta({ title: 'Customer' })
 
-const route = useRoute()
+const route  = useRoute()
+const client = useSupabaseClient()
 const { getById } = useCustomers()
 
 const customer = computed(() => getById(route.params.id))
+const sales    = ref<any[]>([])
+
+onMounted(async () => {
+  const { data } = await client
+    .from('sales')
+    .select('id, qty, total, created_at, product:products(name, type)')
+    .eq('customer_id', route.params.id)
+    .order('created_at', { ascending: false })
+  sales.value = data ?? []
+})
 
 const avgPurchase = computed(() =>
   customer.value && customer.value.purchases > 0
@@ -61,59 +72,60 @@ const avgPurchase = computed(() =>
 
 const firstVisit = computed(() => {
   if (!customer.value) return ''
-  const idx = Number(customer.value.id)
-  const year = 2025 - Math.floor(idx / 4)
-  const month = String(((idx * 3) % 12) + 1).padStart(2, '0')
-  return `${month}.${year}`
+  const raw = customer.value.created_at ?? customer.value.last_visit
+  if (!raw) return '—'
+  const d = new Date(raw)
+  return `${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`
 })
 
-const BASE_MONTH  = [6200,7100,6800,8200,7800,9100,8700,9500,11200,10400,9800,11500]
-const BASE_LABELS = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar']
+// Purchase history from real sales
+const purchases = computed(() =>
+  sales.value.map(s => {
+    const d = new Date(s.created_at)
+    const date = `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`
+    return { id: s.id, date, product: s.product?.name ?? '—', qty: s.qty, amount: s.total }
+  })
+)
 
-function scaledData(base: number[]) {
-  if (!customer.value) return []
-  const ratio = customer.value.spent / 170000
-  return base.map((v, i) => ({
-    label: BASE_LABELS[i],
-    revenue: Math.round(v * ratio * (0.85 + (i % 3) * 0.1)),
-  }))
-}
+// Chart data built from real sales
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
-const spendYear  = computed(() => scaledData(BASE_MONTH))
+const spendYear = computed(() => {
+  const now = new Date()
+  return Array.from({ length: 12 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - 11 + i, 1)
+    const revenue = sales.value
+      .filter(s => { const sd = new Date(s.created_at); return sd.getMonth() === d.getMonth() && sd.getFullYear() === d.getFullYear() })
+      .reduce((sum, s) => sum + s.total, 0)
+    return { label: MONTHS[d.getMonth()], revenue }
+  })
+})
 
 const spendMonth = computed(() => {
-  if (!customer.value) return []
-  const ratio = customer.value.spent / 170000
-  return Array.from({ length: 30 }, (_, i) => ({
-    label: String(i + 1),
-    revenue: Math.round(Math.random() * 800 * ratio + 200 * ratio),
-  }))
+  const now = new Date()
+  const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+  return Array.from({ length: days }, (_, i) => {
+    const day = i + 1
+    const revenue = sales.value
+      .filter(s => { const sd = new Date(s.created_at); return sd.getDate() === day && sd.getMonth() === now.getMonth() && sd.getFullYear() === now.getFullYear() })
+      .reduce((sum, s) => sum + s.total, 0)
+    return { label: String(day), revenue }
+  })
 })
 
 const spendWeek = computed(() => {
-  if (!customer.value) return []
-  const ratio = customer.value.spent / 170000
-  return ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => ({
-    label: d,
-    revenue: Math.round((Math.random() * 600 + 100) * ratio),
-  }))
-})
-
-const PRODUCTS = ['Item 1','Item 2','Item 3','Item 4','Item 5','Item 6','Item 7','Item 8']
-
-const purchases = computed(() => {
-  if (!customer.value) return []
-  const c = customer.value
-  const count = Math.min(c.purchases, 12)
-  const perPurchase = Math.round(c.spent / c.purchases)
-  return Array.from({ length: count }, (_, i) => {
-    const daysAgo = i * Math.max(3, Math.floor(300 / count))
-    const d = new Date('2026-03-20')
-    d.setDate(d.getDate() - daysAgo)
-    const dateStr = `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`
-    const qty = [1,1,2,1,3,1][i % 6]
-    const base = Math.round(perPurchase / qty * (0.8 + (i % 5) * 0.08))
-    return { id: i+1, date: dateStr, product: PRODUCTS[(Number(c.id) + i) % PRODUCTS.length], qty, amount: base * qty }
+  const now = new Date()
+  const weekStart = new Date(now)
+  const dow = now.getDay()
+  weekStart.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1))
+  weekStart.setHours(0, 0, 0, 0)
+  return ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map((label, i) => {
+    const from = new Date(weekStart); from.setDate(weekStart.getDate() + i)
+    const to   = new Date(from);     to.setDate(from.getDate() + 1)
+    const revenue = sales.value
+      .filter(s => { const sd = new Date(s.created_at); return sd >= from && sd < to })
+      .reduce((sum, s) => sum + s.total, 0)
+    return { label, revenue }
   })
 })
 

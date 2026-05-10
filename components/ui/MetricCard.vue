@@ -1,12 +1,18 @@
 <template>
   <div class="metric">
     <div class="metric-label">{{ label }}</div>
-    <div class="metric-value">{{ value }}</div>
+    <div class="metric-value" :style="highlight ? { color: highlight === 'green' ? '#4ADE80' : highlight === 'amber' ? '#FACC15' : '#F87171' } : {}">{{ value }}</div>
+    <div v-if="sub" class="metric-sub">{{ sub }}</div>
   </div>
 </template>
 
 <script setup lang="ts">
-defineProps<{ label: string; value: string | number }>()
+defineProps<{
+  label:      string
+  value:      string | number
+  sub?:       string
+  highlight?: 'green' | 'red' | 'amber'
+}>()
 </script>
 
 <style scoped>
@@ -38,5 +44,11 @@ defineProps<{ label: string; value: string | number }>()
   letter-spacing: -1px;
   margin-bottom: 6px;
   color: var(--text);
+}
+
+.metric-sub {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-top: 4px;
 }
 </style>

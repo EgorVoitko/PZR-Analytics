@@ -5,6 +5,13 @@ function calcTier(spent: number) {
   return 'none'
 }
 
+function calcDefaultDiscount(tier: string): number {
+  if (tier === 'gold')   return 10
+  if (tier === 'silver') return 5
+  if (tier === 'bronze') return 2
+  return 0
+}
+
 const _customers    = ref<any[]>([])
 const _ready        = ref(false)
 const _subscribed   = ref(false)
@@ -46,12 +53,19 @@ export function useCustomers() {
   }
 
   const allCustomers = computed(() =>
-    _customers.value.map(c => ({ ...c, tier: calcTier(c.spent) }))
+    _customers.value.map(c => {
+      const tier     = calcTier(c.spent)
+      const discount = calcDefaultDiscount(tier)
+      return { ...c, tier, discount }
+    })
   )
 
   function getById(id: any) {
     const c = _customers.value.find(c => String(c.id) === String(id))
-    return c ? { ...c, tier: calcTier(c.spent) } : null
+    if (!c) return null
+    const tier     = calcTier(c.spent)
+    const discount = calcDefaultDiscount(tier)
+    return { ...c, tier, discount }
   }
 
   async function updateCustomer(id: any, data: any) {

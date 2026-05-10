@@ -21,6 +21,10 @@
           <span class="mi nav-icon">receipt_long</span>
           Sales
         </NuxtLink>
+        <NuxtLink to="/dashboard/expenses" class="nav-item" active-class="active">
+          <span class="mi nav-icon">payments</span>
+          Expenses
+        </NuxtLink>
       </template>
 
       <template v-else>

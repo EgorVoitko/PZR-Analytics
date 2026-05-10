@@ -12,7 +12,23 @@ function parseDate(str: string) {
   return new Date(Number(yyyy), Number(mm) - 1, Number(dd), Number(hh), Number(min)).toISOString()
 }
 
-function normalize(row: any) {
+export interface Sale {
+  id:            number
+  date:          string
+  createdAt:     string
+  staffId:       string | null
+  staffName:     string
+  productId:     number | null
+  productName:   string
+  productType:   string | null
+  customerId:    number | null
+  qty:           number
+  total:         number
+  edited:        boolean
+  paymentStatus: string
+}
+
+function normalize(row: Record<string, any>): Sale {
   return {
     id:            row.id,
     date:          formatDate(row.created_at),
@@ -29,12 +45,6 @@ function normalize(row: any) {
     paymentStatus: row.payment_status,
   }
 }
-
-const _prevMonthRaw = [
-  0, 389, 0, 499, 0, 178, 0, 429, 0, 899,
-  0, 249, 165, 0, 389, 429, 0, 499, 0, 899,
-  178, 0, 429, 0, 165, 389, 0, 249,
-]
 
 const _sales      = ref<any[]>([])
 const _ready      = ref(false)
@@ -180,17 +190,21 @@ export function useSales(staffId: any = null) {
   )
 
   const prevMonthByDay = computed(() => {
-    let ratio = 1
-    if (_id.value && _sales.value.length > 0) {
-      const total = _sales.value.reduce((s: number, x: any) => s + x.total, 0)
-      const mine  = _sales.value.filter((x: any) => x.staffId === _id.value).reduce((s: number, x: any) => s + x.total, 0)
-      ratio = total > 0 ? mine / total : 0
-    }
-    return _prevMonthRaw.map((revenue, i) => ({
-      day: i + 1,
-      label: String(i + 1),
-      revenue: Math.round(revenue * ratio),
-    }))
+    const now       = new Date()
+    const prevMonth = now.getMonth() === 0 ? 11 : now.getMonth() - 1
+    const prevYear  = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear()
+    const daysInPrevMonth = new Date(prevYear, prevMonth + 1, 0).getDate()
+
+    return Array.from({ length: daysInPrevMonth }, (_, i) => {
+      const day = i + 1
+      const revenue = sales.value
+        .filter((s: Sale) => {
+          const sd = new Date(s.createdAt)
+          return sd.getFullYear() === prevYear && sd.getMonth() === prevMonth && sd.getDate() === day
+        })
+        .reduce((sum: number, s: Sale) => sum + s.total, 0)
+      return { day, label: String(day), revenue }
+    })
   })
 
   function recentSales(limit = 5) {

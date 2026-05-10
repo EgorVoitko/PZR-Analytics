@@ -1,10 +1,11 @@
 <template>
   <div class="dashboard">
     <div class="metrics">
-      <UiMetricCard label="Revenue"   :value="fmt(totalRevenue)" />
-      <UiMetricCard label="Sales"     :value="totalSales.toLocaleString('en-US')" />
-      <UiMetricCard label="Today"     :value="fmt(todayRevenue)" />
-      <UiMetricCard label="Customers" :value="customerCount" />
+      <UiMetricCard label="Revenue"        :value="fmt(totalRevenue)" />
+      <UiMetricCard label="Net Profit"     :value="fmt(netProfit)" :sub="margin + '% margin'" :highlight="netProfit >= 0 ? 'green' : 'red'" />
+      <UiMetricCard label="Today"          :value="fmt(todayRevenue)" />
+      <UiMetricCard label="Customers"      :value="customerCount" :sub="uniqueBuyersThisMonth + ' buyers this month'" />
+      <UiMetricCard label="Retention Rate" :value="retention + '%'" sub="returning buyers this month" :highlight="retention >= 50 ? 'green' : retention > 0 ? 'amber' : undefined" />
     </div>
 
     <div class="main-grid">
@@ -35,39 +36,25 @@
         :prev-data="prevMonthByDay"
       />
     </ClientOnly>
+
+
   </div>
 </template>
 
 <script setup lang="ts">
 definePageMeta({ title: 'Overview' })
 
-const TYPE_LABELS: Record<string, string> = {
-  'dino': 'Dino', 'boss': 'Boss', 'basic_resource': 'Basic Resource',
-  'advanced_resource': 'Advanced Resource', 'consumable': 'Consumable',
-  'dye': 'Dye', 'weapon': 'Weapon', 'armor': 'Armor', 'saddle': 'Saddle',
-  'tek_structure': 'Tek Structure', 'metal_structure': 'Metal Structure', 'utility': 'Utility',
-}
-const TYPE_COLORS: Record<string, string> = {
-  'dino':              '#4ADE80',
-  'boss':              '#F87171',
-  'basic_resource':    '#60A5FA',
-  'advanced_resource': '#C084FC',
-  'consumable':        '#06B6D4',
-  'dye':               '#FACC15',
-  'weapon':            '#FB923C',
-  'armor':             '#EC4899',
-  'saddle':            '#84CC16',
-  'tek_structure':     '#14B8A6',
-  'metal_structure':   '#6366F1',
-  'utility':           '#D946EF',
-}
+import { PRODUCT_TYPE_LABELS as TYPE_LABELS, PRODUCT_TYPE_COLORS as TYPE_COLORS } from '~/constants/productTypes'
 
 const { allCustomers } = useCustomers()
 const { sales, recentSales, todayRevenue, revenueByWeek, revenueByMonth, revenueByYear, prevMonthByDay } = useSales()
+const { totalExpenses, stripeFees } = useExpenses(sales, allCustomers)
 
 const totalRevenue  = computed(() => sales.value.reduce((sum: number, s: any) => sum + s.total, 0))
 const totalSales    = computed(() => sales.value.length)
 const customerCount = computed(() => allCustomers.value.length)
+const netProfit     = computed(() => totalRevenue.value - totalExpenses.value)
+const margin        = computed(() => totalRevenue.value > 0 ? Math.round((netProfit.value / totalRevenue.value) * 100) : 0)
 
 const feedSales = computed(() =>
   recentSales(8).map((sale: any) => ({
@@ -88,6 +75,69 @@ const earningsByType = computed(() => {
     .sort((a, b) => b.value - a.value)
 })
 
+// ── Customer Analytics ───────────────────────────────────────────
+const thisMonthSales = computed(() => {
+  const now = new Date()
+  return sales.value.filter((s: any) => {
+    const d = new Date(s.createdAt)
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+  })
+})
+
+const salesThisMonth        = computed(() => thisMonthSales.value.length)
+const uniqueBuyersThisMonth = computed(() => new Set(thisMonthSales.value.map((s: any) => s.customerId).filter(Boolean)).size)
+
+const aovThisMonth = computed(() =>
+  salesThisMonth.value > 0
+    ? Math.round(thisMonthSales.value.reduce((sum: number, s: any) => sum + s.total, 0) / salesThisMonth.value)
+    : 0
+)
+
+const retention = computed(() => {
+  const thisMonthCustomerIds = [...new Set(thisMonthSales.value.map((s: any) => s.customerId).filter(Boolean))]
+  if (thisMonthCustomerIds.length === 0) return 0
+  const now = new Date()
+  const returning = thisMonthCustomerIds.filter(cid =>
+    sales.value.some((s: any) => {
+      const d = new Date(s.createdAt)
+      const beforeThisMonth = !(d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear())
+      return s.customerId === cid && beforeThisMonth
+    })
+  )
+  return Math.round((returning.length / thisMonthCustomerIds.length) * 100)
+})
+
+const returningBuyersThisMonth = computed(() => {
+  const now = new Date()
+  const ids = [...new Set(thisMonthSales.value.map((s: any) => s.customerId).filter(Boolean))]
+  return ids.filter(cid =>
+    sales.value.some((s: any) => {
+      const d = new Date(s.createdAt)
+      return s.customerId === cid && !(d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear())
+    })
+  ).length
+})
+
+const newBuyersThisMonth = computed(() => uniqueBuyersThisMonth.value - returningBuyersThisMonth.value)
+
+const aovByMonth = computed(() =>
+  Array.from({ length: 12 }, (_, i) => {
+    const d = new Date()
+    d.setMonth(d.getMonth() - 11 + i)
+    const yr = d.getFullYear()
+    const mo = d.getMonth()
+    const monthSales = sales.value.filter((s: any) => {
+      const sd = new Date(s.createdAt)
+      return sd.getFullYear() === yr && sd.getMonth() === mo
+    })
+    return {
+      label: d.toLocaleString('en-US', { month: 'short' }),
+      aov:   monthSales.length > 0 ? Math.round(monthSales.reduce((sum: number, s: any) => sum + s.total, 0) / monthSales.length) : 0,
+      count: monthSales.length,
+    }
+  })
+)
+
 function fmt(n: number) { return '$' + n.toLocaleString('en-US') }
 </script>
 
@@ -99,7 +149,7 @@ function fmt(n: number) { return '$' + n.toLocaleString('en-US') }
 
 .metrics {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 12px;
   margin-bottom: 20px;
 }
@@ -121,4 +171,5 @@ function fmt(n: number) { return '$' + n.toLocaleString('en-US') }
   flex-direction: column;
   gap: 16px;
 }
+
 </style>

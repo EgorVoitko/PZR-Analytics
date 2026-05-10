@@ -65,6 +65,29 @@ export function useExport() {
     download(wb, 'customers.xlsx')
   }
 
+  function exportExpenses(
+    manual: any[],
+    auto: { label: string; amount: number; description: string }[]
+  ) {
+    const header = ['Date', 'Category', 'Description', 'Amount ($)', 'Type']
+
+    const autoRows = auto.map(e => ['Auto', e.label, e.description, e.amount, 'Automatic'])
+    const manualRows = manual.map(e => [e.date, e.category, e.description ?? '—', e.amount, 'Manual'])
+
+    const totalRow = ['', '', 'TOTAL',
+      auto.reduce((s, e) => s + e.amount, 0) + manual.reduce((s, e) => s + e.amount, 0),
+      '',
+    ]
+
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(
+      wb,
+      sheet([header, ...autoRows, ...manualRows, [], totalRow], [14, 22, 36, 14, 12]),
+      'Expenses'
+    )
+    download(wb, 'expenses.xlsx')
+  }
+
   function exportForCurrentPage() {
     const path = route.path
 
@@ -101,7 +124,19 @@ export function useExport() {
       exportCustomers(allCustomers.value)
       return
     }
+
+    if (path === '/dashboard/expenses') {
+      const { sales } = useSales()
+      const { allCustomers } = useCustomers()
+      const { expenses, stripeFees, hostingFee, discountCost } = useExpenses(sales, allCustomers)
+      exportExpenses(expenses.value, [
+        stripeFees.value,
+        hostingFee.value,
+        discountCost.value,
+      ])
+      return
+    }
   }
 
-  return { exportForCurrentPage, exportSales, exportEmployees, exportCustomers }
+  return { exportForCurrentPage, exportSales, exportEmployees, exportCustomers, exportExpenses }
 }

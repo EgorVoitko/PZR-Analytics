@@ -2,7 +2,7 @@
   <header class="header">
     <h1 class="page-title">{{ title }}</h1>
     <div class="header-right">
-      <button class="icon-btn" title="Export to Excel" @click="exportForCurrentPage">
+      <button v-if="route.path !== '/'" class="icon-btn" title="Export to Excel" @click="exportForCurrentPage">
         <span class="mi" style="font-size:18px">download</span>
       </button>
     </div>
@@ -12,6 +12,7 @@
 <script setup lang="ts">
 defineProps<{ title: string }>()
 
+const route = useRoute()
 const { exportForCurrentPage } = useExport()
 </script>
 
